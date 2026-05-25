@@ -1,0 +1,164 @@
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { SearchBar } from '@/components/search-bar'
+import { BookMarked, ArrowLeft } from 'lucide-react'
+import type { Akya } from '@/types'
+
+export default function AkyaPage() {
+  const [akyalar, setAkyalar] = useState<Akya[]>([])
+  const [loading, setLoading] = useState(true)
+  const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState<Akya | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('akya')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setAkyalar(data || [])
+        setLoading(false)
+      })
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!query) return akyalar
+    const q = query.toLowerCase()
+    return akyalar.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        (a.summary_ru || '').toLowerCase().includes(q)
+    )
+  }, [query, akyalar])
+
+  if (selected) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        <button
+          onClick={() => setSelected(null)}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Артка кайтуу
+        </button>
+
+        <h1
+          className="text-4xl font-bold text-foreground mb-4"
+          style={{ fontFamily: 'var(--font-unbounded)' }}
+        >
+          {selected.title}
+        </h1>
+
+        {selected.summary_ru && (
+          <p
+            className="text-muted-foreground mb-8 p-4 bg-muted rounded-2xl border border-border italic"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            {selected.summary_ru}
+          </p>
+        )}
+
+        <div
+          className="prose prose-lg max-w-none text-foreground/85 leading-relaxed"
+          style={{ fontFamily: 'var(--font-nunito)', fontSize: '1.05rem', lineHeight: '1.8' }}
+        >
+          {selected.content_kg.split('\n').map((para, i) => (
+            <p key={i} className="mb-4">
+              {para}
+            </p>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <BookMarked className="h-6 w-6 text-muted-foreground" />
+          <h1
+            className="text-4xl font-bold text-foreground"
+            style={{ fontFamily: 'var(--font-unbounded)' }}
+          >
+            Жомоктор
+          </h1>
+        </div>
+        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+          Кыргызские сказки и легенды
+        </p>
+      </div>
+
+      <div className="mb-6">
+        <SearchBar placeholder="Акыя издөө..." onSearch={setQuery} />
+      </div>
+
+      {loading ? (
+        <div className="grid gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="glass rounded-2xl border-primary/15">
+              <CardContent className="p-6">
+                <Skeleton className="h-7 w-48 mb-3" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <BookMarked className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+            Акыя табылган жок
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {filtered.map((akya) => (
+            <Card
+              key={akya.id}
+              className="glass rounded-2xl border-primary/15 card-hover cursor-pointer"
+              onClick={() => setSelected(akya)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center flex-shrink-0">
+                    <BookMarked className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3
+                      className="font-bold text-foreground mb-2"
+                      style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.9rem' }}
+                    >
+                      {akya.title}
+                    </h3>
+                    {akya.summary_ru && (
+                      <p
+                        className="text-muted-foreground text-sm line-clamp-2"
+                        style={{ fontFamily: 'var(--font-nunito)' }}
+                      >
+                        {akya.summary_ru}
+                      </p>
+                    )}
+                    <p
+                      className="text-muted-foreground text-xs mt-3 font-medium"
+                      style={{ fontFamily: 'var(--font-nunito)' }}
+                    >
+                      Окуу →
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
