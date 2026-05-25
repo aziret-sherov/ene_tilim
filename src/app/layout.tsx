@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Nunito } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { Navbar } from '@/components/navbar'
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin', 'cyrillic'],
@@ -70,10 +69,7 @@ export default function RootLayout({
     <html lang="ky" suppressHydrationWarning>
       <body className={`${playfairDisplay.variable} ${nunito.variable} min-h-screen antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
+          {children}
         </ThemeProvider>
       </body>
     </html>
