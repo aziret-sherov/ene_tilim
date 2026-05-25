@@ -1,0 +1,157 @@
+'use client'
+
+import { useState, useEffect, useMemo } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { SearchBar } from '@/components/search-bar'
+import { Music, ChevronDown, ChevronUp } from 'lucide-react'
+import type { Yr } from '@/types'
+
+export default function YrlarPage() {
+  const [yrlar, setYrlar] = useState<Yr[]>([])
+  const [loading, setLoading] = useState(true)
+  const [query, setQuery] = useState('')
+  const [expanded, setExpanded] = useState<number | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('yrlar')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setYrlar(data || [])
+        setLoading(false)
+      })
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!query) return yrlar
+    const q = query.toLowerCase()
+    return yrlar.filter(
+      (y) =>
+        y.title.toLowerCase().includes(q) ||
+        y.lyrics_kg.toLowerCase().includes(q)
+    )
+  }, [query, yrlar])
+
+  const toggleExpand = (id: number) => {
+    setExpanded((prev) => (prev === id ? null : id))
+  }
+
+  return (
+    <div className="px-5 sm:px-7 lg:px-10 py-8">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Music className="h-6 w-6 text-muted-foreground" />
+          <h1
+            className="text-4xl font-bold text-foreground"
+            style={{ fontFamily: 'var(--font-unbounded)' }}
+          >
+            Ырлар
+          </h1>
+        </div>
+        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+          Кыргызские песни с текстами
+        </p>
+      </div>
+
+      <div className="mb-6">
+        <SearchBar placeholder="Ыр издөө..." onSearch={setQuery} />
+      </div>
+
+      {loading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="glass rounded-2xl border-primary/15">
+              <CardContent className="p-6">
+                <Skeleton className="h-7 w-48 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Music className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+            Ыр табылган жок
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filtered.map((yr) => {
+            const isExpanded = expanded === yr.id
+            return (
+              <Card key={yr.id} className="glass rounded-2xl border-primary/15">
+                <CardContent className="p-0">
+                  <button
+                    onClick={() => toggleExpand(yr.id)}
+                    className="w-full flex items-center justify-between p-6 text-left hover:bg-primary/5 transition-colors rounded-2xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                        <Music className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3
+                          className="font-bold text-foreground"
+                          style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.9rem' }}
+                        >
+                          {yr.title}
+                        </h3>
+                        <p
+                          className="text-xs text-muted-foreground mt-0.5 line-clamp-1"
+                          style={{ fontFamily: 'var(--font-nunito)' }}
+                        >
+                          {yr.lyrics_kg.split('\n')[0]}
+                        </p>
+                      </div>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-6 pb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border pt-6">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            Кыргызча
+                          </p>
+                          <pre
+                            className="whitespace-pre-wrap text-foreground/80 text-sm leading-relaxed"
+                            style={{ fontFamily: 'var(--font-nunito)' }}
+                          >
+                            {yr.lyrics_kg}
+                          </pre>
+                        </div>
+                        {yr.translation_ru && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                              Перевод
+                            </p>
+                            <pre
+                              className="whitespace-pre-wrap text-muted-foreground text-sm leading-relaxed"
+                              style={{ fontFamily: 'var(--font-nunito)' }}
+                            >
+                              {yr.translation_ru}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
