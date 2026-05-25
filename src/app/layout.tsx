@@ -19,9 +19,46 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'Эне тилим — Кыргыз тили жана маданияты',
-  description: 'Кыргыз тилин жана маданиятын үйрөн. Макалдар, лакаптар, табышмактар, ырлар жана акыялар.',
-  keywords: ['кыргыз тили', 'kyrgyz', 'язык', 'культура'],
+  metadataBase: new URL('https://ene-tilim.online'),
+  title: {
+    default: 'Эне тилим — Кыргызский язык и культура',
+    template: '%s | Эне тилим',
+  },
+  description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь. Эне тилим — твой проводник в мир кыргызского языка.',
+  keywords: [
+    'кыргызский язык', 'кыргыз тили', 'kyrgyz language', 'кыргызские пословицы',
+    'макалдар', 'лакаптар', 'табышмактар', 'кыргызские загадки', 'кыргызские песни',
+    'кыргызский словарь', 'сөздүк', 'кыргызская культура', 'эне тилим',
+  ],
+  authors: [{ name: 'Эне тилим', url: 'https://ene-tilim.online' }],
+  creator: 'Эне тилим',
+  openGraph: {
+    type: 'website',
+    locale: 'ru_RU',
+    alternateLocale: 'ky_KG',
+    url: 'https://ene-tilim.online',
+    siteName: 'Эне тилим',
+    title: 'Эне тилим — Кыргызский язык и культура',
+    description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Эне тилим — Кыргызский язык и культура',
+    description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+    },
+  },
+  alternates: {
+    canonical: 'https://ene-tilim.online',
+  },
 }
 
 export default function RootLayout({
