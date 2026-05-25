@@ -81,6 +81,17 @@ export async function addEntry(table: string, data: Record<string, string>) {
   return { success: true }
 }
 
+export async function updateEntry(table: string, id: number | string, data: Record<string, string>) {
+  await requireSession()
+  const supabase = createAdminClient()
+  const cleaned = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined && v !== null)
+  )
+  const { error } = await supabase.from(table).update(cleaned).eq('id', id)
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function deleteEntry(table: string, id: number | string) {
   await requireSession()
   const supabase = createAdminClient()
