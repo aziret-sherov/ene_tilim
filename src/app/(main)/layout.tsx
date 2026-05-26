@@ -4,7 +4,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen">
+      <main className="min-h-[calc(100vh-64px)]">
         {children}
       </main>
     </>

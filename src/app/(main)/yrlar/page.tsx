@@ -5,13 +5,16 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
-import { Music, ChevronDown, ChevronUp } from 'lucide-react'
+import { Music, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react'
 import type { Yr } from '@/types'
+
+type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
 export default function YrlarPage() {
   const [yrlar, setYrlar] = useState<Yr[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
   const [expanded, setExpanded] = useState<number | null>(null)
 
   useEffect(() => {
@@ -19,7 +22,6 @@ export default function YrlarPage() {
     supabase
       .from('yrlar')
       .select('*')
-      .order('created_at', { ascending: false })
       .then(({ data }) => {
         setYrlar(data || [])
         setLoading(false)
@@ -27,14 +29,23 @@ export default function YrlarPage() {
   }, [])
 
   const filtered = useMemo(() => {
-    if (!query) return yrlar
-    const q = query.toLowerCase()
-    return yrlar.filter(
-      (y) =>
-        y.title.toLowerCase().includes(q) ||
-        y.lyrics_kg.toLowerCase().includes(q)
-    )
-  }, [query, yrlar])
+    let result = yrlar
+    if (query) {
+      const q = query.toLowerCase()
+      result = result.filter(
+        (y) => y.title.toLowerCase().includes(q) || y.lyrics_kg.toLowerCase().includes(q)
+      )
+    }
+    return [...result].sort((a, b) => {
+      switch (sortOrder) {
+        case 'newest': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'oldest': return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        case 'az': return a.title.localeCompare(b.title)
+        case 'za': return b.title.localeCompare(a.title)
+        default: return 0
+      }
+    })
+  }, [query, sortOrder, yrlar])
 
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id))
@@ -45,10 +56,7 @@ export default function YrlarPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Music className="h-6 w-6 text-muted-foreground" />
-          <h1
-            className="text-4xl font-bold text-foreground"
-            style={{ fontFamily: 'var(--font-unbounded)' }}
-          >
+          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
             Ырлар
           </h1>
         </div>
@@ -57,13 +65,29 @@ export default function YrlarPage() {
         </p>
       </div>
 
-      <div className="mb-6">
-        <SearchBar placeholder="Ыр издөө..." onSearch={setQuery} />
+      <div className="flex gap-2 mb-6">
+        <div className="flex-1">
+          <SearchBar placeholder="Ыр издөө..." onSearch={setQuery} />
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 px-3 rounded-xl border border-border bg-background text-sm text-muted-foreground cursor-pointer">
+          <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+          <select
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value as SortOrder)}
+            className="bg-transparent outline-none cursor-pointer py-2"
+            style={{ fontFamily: 'var(--font-nunito)' }}
+          >
+            <option value="newest">Новые</option>
+            <option value="oldest">Старые</option>
+            <option value="az">А-Я</option>
+            <option value="za">Я-А</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="glass rounded-2xl border-primary/15">
               <CardContent className="p-6">
                 <Skeleton className="h-7 w-48 mb-2" />
@@ -75,12 +99,10 @@ export default function YrlarPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <Music className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-            Ыр табылган жок
-          </p>
+          <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>Ыр табылган жок</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((yr) => {
             const isExpanded = expanded === yr.id
             return (
@@ -90,13 +112,13 @@ export default function YrlarPage() {
                     onClick={() => toggleExpand(yr.id)}
                     className="w-full flex items-center justify-between p-6 text-left hover:bg-primary/5 transition-colors rounded-2xl"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                         <Music className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <h3
-                          className="font-bold text-foreground"
+                          className="font-bold text-foreground truncate"
                           style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.9rem' }}
                         >
                           {yr.title}
@@ -109,13 +131,10 @@ export default function YrlarPage() {
                         </p>
                       </div>
                     </div>
-                    {isExpanded ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                    )}
+                    {isExpanded
+                      ? <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                      : <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />}
                   </button>
-
                   {isExpanded && (
                     <div className="px-6 pb-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border pt-6">

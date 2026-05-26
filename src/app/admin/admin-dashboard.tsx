@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   LogOut, Plus, Trash2, Users, RefreshCw, X,
   MessageSquare, Smile, HelpCircle, Music2, BookOpen, Book,
-  Pencil, AlertTriangle,
+  Pencil, AlertTriangle, Menu, Search, ArrowUpDown,
 } from 'lucide-react'
 import {
   logout, getEntries, addEntry, updateEntry, deleteEntry,
@@ -192,6 +192,38 @@ function DeleteModal({
   )
 }
 
+// ── Auto-resizing textarea ────────────────────────────────────────────────────
+function AutoTextarea({
+  value, onChange, required, minRows, className,
+}: {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  required?: boolean
+  minRows: number
+  className?: string
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }, [value])
+
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      required={required}
+      rows={minRows}
+      className={className}
+      style={{ resize: 'none', overflow: 'hidden' }}
+    />
+  )
+}
+
 // ── Entry form (used for both add and edit) ───────────────────────────────────
 function EntryForm({
   section,
@@ -218,24 +250,13 @@ function EntryForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="px-6 py-5">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {section.fields.map(field => (
-            <div
-              key={field.name}
-              className={field.type === 'textarea' ? 'col-span-2' : 'col-span-1'}
-            >
+            <div key={field.name} className="sm:col-span-2">
               <label className="block text-xs font-medium text-zinc-500 mb-1.5">
                 {field.label}{field.required && ' *'}
               </label>
-              {field.type === 'textarea' ? (
-                <textarea
-                  rows={3}
-                  required={field.required}
-                  value={form[field.name] ?? ''}
-                  onChange={e => setForm(p => ({ ...p, [field.name]: e.target.value }))}
-                  className={inputClass + ' resize-none'}
-                />
-              ) : field.type === 'select' ? (
+              {field.type === 'select' ? (
                 <select
                   value={form[field.name] ?? ''}
                   onChange={e => setForm(p => ({ ...p, [field.name]: e.target.value }))}
@@ -245,8 +266,8 @@ function EntryForm({
                   {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               ) : (
-                <input
-                  type="text"
+                <AutoTextarea
+                  minRows={field.type === 'textarea' ? 3 : 1}
                   required={field.required}
                   value={form[field.name] ?? ''}
                   onChange={e => setForm(p => ({ ...p, [field.name]: e.target.value }))}
@@ -293,6 +314,9 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [adminQuery, setAdminQuery] = useState('')
+  const [adminSort, setAdminSort] = useState<'newest' | 'oldest' | 'az' | 'za'>('newest')
 
   // Edit modal
   const [editEntry, setEditEntry] = useState<Record<string, string> | null>(null)
@@ -327,6 +351,8 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
     setEditEntry(null)
     setDeleteTarget(null)
     setSuccess('')
+    setAdminQuery('')
+    setAdminSort('newest')
     if (activeTab === 'users') {
       getAdminUsers().then(d => setUsers(d as Record<string, string>[])).catch(() => {})
     } else {
@@ -335,6 +361,31 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
   }, [activeTab, loadEntries])
 
   const section = SECTIONS.find(s => s.key === activeTab)
+
+  const filteredEntries = useMemo(() => {
+    let result = entries
+    if (adminQuery) {
+      const q = adminQuery.toLowerCase()
+      result = result.filter(e =>
+        Object.values(e).some(v => String(v).toLowerCase().includes(q))
+      )
+    }
+    return [...result].sort((a, b) => {
+      switch (adminSort) {
+        case 'newest': return Number(b.id) - Number(a.id)
+        case 'oldest': return Number(a.id) - Number(b.id)
+        case 'az': {
+          const key = section?.fields[0]?.name ?? 'id'
+          return String(a[key] ?? '').localeCompare(String(b[key] ?? ''))
+        }
+        case 'za': {
+          const key = section?.fields[0]?.name ?? 'id'
+          return String(b[key] ?? '').localeCompare(String(a[key] ?? ''))
+        }
+        default: return 0
+      }
+    })
+  }, [entries, adminQuery, adminSort, section])
 
   const handleAdd = async (form: Record<string, string>) => {
     setSaving(true)
@@ -393,7 +444,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
   ]
 
   return (
-    <div className="min-h-screen flex bg-zinc-50" style={{ fontFamily: 'var(--font-nunito)' }}>
+    <div className="min-h-screen flex items-start bg-zinc-50" style={{ fontFamily: 'var(--font-nunito)' }}>
 
       {/* ── Modals ── */}
       {deleteTarget && (
@@ -409,7 +460,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
         <Modal
           title={`Редактировать · ${section.label}`}
           onClose={() => setEditEntry(null)}
-          maxWidth="max-w-xl"
+          maxWidth="max-w-3xl"
         >
           <EntryForm
             section={section}
@@ -422,25 +473,61 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
         </Modal>
       )}
 
+      {showAddForm && section && (
+        <Modal
+          title={`Добавить · ${section.label}`}
+          onClose={() => setShowAddForm(false)}
+          maxWidth="max-w-3xl"
+        >
+          <EntryForm
+            section={section}
+            initialValues={{}}
+            onSubmit={handleAdd}
+            onCancel={() => setShowAddForm(false)}
+            saving={saving}
+            submitLabel="Добавить"
+          />
+        </Modal>
+      )}
+
+      {/* ── Mobile sidebar overlay ── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className="w-60 bg-white border-r border-zinc-100 flex flex-col shrink-0">
-        <div className="h-16 flex items-center px-5 border-b border-zinc-100">
+      <aside
+        className={`w-60 bg-white border-r border-zinc-100 flex flex-col shrink-0 transition-transform duration-200
+          sticky top-0 self-start h-screen
+          max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:h-full
+          ${sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'}`}
+      >
+        <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-100">
           <span
             className="font-black text-[#18181b] text-sm"
             style={{ fontFamily: 'var(--font-unbounded)' }}
           >
             Эне тилим
           </span>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 lg:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        <nav className="flex-1 p-2 py-3 space-y-0.5">
+        <nav className="flex-1 p-2 py-3 space-y-0.5 overflow-y-auto">
           {tabs.map(tab => {
             const Icon = tab.icon
             const isActive = activeTab === tab.key
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => { setActiveTab(tab.key); setSidebarOpen(false) }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                   isActive
                     ? 'bg-[#18181b] text-white'
@@ -478,27 +565,35 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
       </aside>
 
       {/* ── Main ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-zinc-100 flex items-center justify-between px-8 shrink-0">
-          <div>
-            <h1
-              className="font-bold text-zinc-900 leading-tight"
-              style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.875rem' }}
+        <header className="sticky top-0 z-30 h-16 bg-white border-b border-zinc-100 flex items-center justify-between px-4 sm:px-8 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-xl hover:bg-zinc-100 text-zinc-500 lg:hidden shrink-0"
             >
-              {activeTab === 'users' ? 'Команда' : section?.label}
-            </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              {activeTab === 'users'
-                ? `${users.length} пользователей`
-                : `${section?.labelRu} · ${entries.length} записей`
-              }
-            </p>
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <h1
+                className="font-bold text-zinc-900 leading-tight truncate"
+                style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.875rem' }}
+              >
+                {activeTab === 'users' ? 'Команда' : section?.label}
+              </h1>
+              <p className="text-xs text-zinc-400 mt-0.5 truncate">
+                {activeTab === 'users'
+                  ? `${users.length} пользователей`
+                  : `${section?.labelRu} · ${filteredEntries.length}${adminQuery ? ` из ${entries.length}` : ''} записей`
+                }
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {success && (
-              <span className="text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+              <span className="hidden sm:inline text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
                 ✓ {success}
               </span>
             )}
@@ -512,15 +607,11 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                   <RefreshCw className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => setShowAddForm(v => !v)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    showAddForm
-                      ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                      : 'bg-[#18181b] text-white hover:bg-zinc-700'
-                  }`}
+                  onClick={() => setShowAddForm(true)}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold bg-[#18181b] text-white hover:bg-zinc-700 transition-all"
                 >
-                  {showAddForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                  {showAddForm ? 'Закрыть' : 'Добавить'}
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Добавить</span>
                 </button>
               </>
             )}
@@ -528,13 +619,13 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-8">
+        <main className="p-4 sm:p-8">
           {activeTab === 'users' ? (
-            <div className="max-w-2xl space-y-6">
+            <div className="w-full space-y-6">
               <div className="bg-white rounded-2xl border border-zinc-200 p-6">
                 <h3 className="text-sm font-semibold text-zinc-900 mb-5">Добавить пользователя</h3>
                 <form onSubmit={handleAddUser} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1.5">Имя</label>
                       <input
@@ -619,28 +710,54 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
               </div>
             </div>
           ) : section ? (
-            <div className="max-w-3xl space-y-4">
-              {/* Inline add form */}
-              {showAddForm && (
-                <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-zinc-100">
-                    <h3 className="text-sm font-semibold text-zinc-900">Новая запись</h3>
+            <div className="w-full space-y-4">
+              {/* Search + sort toolbar */}
+              {!loading && entries.length > 0 && (
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center gap-2 px-3 rounded-xl border border-zinc-200 bg-white">
+                    <Search className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={adminQuery}
+                      onChange={e => setAdminQuery(e.target.value)}
+                      placeholder="Поиск..."
+                      className="flex-1 py-2.5 text-sm text-zinc-900 outline-none bg-transparent placeholder:text-zinc-400"
+                      style={{ fontFamily: 'var(--font-nunito)' }}
+                    />
+                    {adminQuery && (
+                      <button onClick={() => setAdminQuery('')} className="text-zinc-300 hover:text-zinc-500">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
-                  <EntryForm
-                    section={section}
-                    initialValues={{}}
-                    onSubmit={handleAdd}
-                    onCancel={() => setShowAddForm(false)}
-                    saving={saving}
-                    submitLabel="Добавить"
-                  />
+                  <div className="flex items-center gap-1.5 shrink-0 px-3 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-500">
+                    <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+                    <select
+                      value={adminSort}
+                      onChange={e => setAdminSort(e.target.value as typeof adminSort)}
+                      className="bg-transparent outline-none cursor-pointer py-2.5"
+                      style={{ fontFamily: 'var(--font-nunito)' }}
+                    >
+                      <option value="newest">Новые</option>
+                      <option value="oldest">Старые</option>
+                      <option value="az">А-Я</option>
+                      <option value="za">Я-А</option>
+                    </select>
+                  </div>
                 </div>
               )}
 
               {/* Entries */}
               {loading ? (
-                <div className="text-sm text-zinc-400 text-center py-12">Загрузка...</div>
-              ) : entries.length === 0 && !showAddForm ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-white rounded-xl border border-zinc-200 p-4 space-y-2">
+                      <div className="h-4 bg-zinc-100 rounded animate-pulse w-3/4" />
+                      <div className="h-3 bg-zinc-100 rounded animate-pulse w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : entries.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-zinc-200 py-16 text-center">
                   <p className="text-sm text-zinc-400">Нет записей</p>
                   <button
@@ -650,43 +767,48 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                     + Добавить первую запись
                   </button>
                 </div>
+              ) : filteredEntries.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-zinc-200 py-12 text-center">
+                  <p className="text-sm text-zinc-400">Ничего не найдено</p>
+                </div>
               ) : (
-                <div className="space-y-2">
-                  {entries.map(entry => {
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredEntries.map(entry => {
                     const { primary, secondary, badge } = section.displayFull(entry)
                     return (
                       <div
                         key={entry.id}
-                        className="bg-white rounded-xl border border-zinc-200 px-4 py-3 flex items-start gap-4 group"
+                        className="bg-white rounded-xl border border-zinc-200 p-4 flex flex-col gap-2 group hover:border-zinc-300 transition-colors"
                       >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-zinc-900 line-clamp-1">{primary}</p>
-                          {secondary && (
-                            <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">{secondary}</p>
-                          )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-zinc-900 line-clamp-2 leading-snug">{primary}</p>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+                            <button
+                              onClick={() => setEditEntry(entry)}
+                              className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
+                              title="Редактировать"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget({ id: entry.id, label: primary })}
+                              className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
+                              title="Удалить"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
+                        {secondary && (
+                          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{secondary}</p>
+                        )}
                         {badge && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 shrink-0 mt-0.5">
+                          <span className="self-start text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
                             {badge}
                           </span>
                         )}
-                        {/* Action buttons — visible on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <button
-                            onClick={() => setEditEntry(entry)}
-                            className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
-                            title="Редактировать"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget({ id: entry.id, label: primary })}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
-                            title="Удалить"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
                       </div>
                     )
                   })}
