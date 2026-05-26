@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { WordOfDay } from '@/components/word-of-day'
+import { HomeFaq } from './home-faq'
 import { useLangFilter } from '@/contexts/lang-filter-context'
 import {
   MessageSquare,
@@ -75,6 +76,8 @@ export default function HomePage() {
   })
 
   return (
+    <>
+    <HomeFaq />
     <div
       className="flex flex-col lg:flex-row gap-4 p-5 sm:p-7 lg:p-10"
       style={{ minHeight: 'calc(100vh - 64px)' }}
@@ -172,5 +175,6 @@ export default function HomePage() {
         ))}
       </div>
     </div>
+    </>
   )
 }
