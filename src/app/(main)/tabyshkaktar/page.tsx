@@ -26,6 +26,7 @@ export default function TabyshkaktarPage() {
     supabase
       .from('tabyshmaktar')
       .select('*')
+      .limit(5000)
       .then(({ data }) => {
         setTabyshmaktar(data || [])
         setLoading(false)

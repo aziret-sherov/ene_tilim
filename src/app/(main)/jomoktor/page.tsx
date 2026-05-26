@@ -22,6 +22,7 @@ export default function AkyaPage() {
     supabase
       .from('akya')
       .select('*')
+      .limit(5000)
       .then(({ data }) => {
         setAkyalar(data || [])
         setLoading(false)

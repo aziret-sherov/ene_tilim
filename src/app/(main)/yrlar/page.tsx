@@ -22,6 +22,7 @@ export default function YrlarPage() {
     supabase
       .from('yrlar')
       .select('*')
+      .limit(5000)
       .then(({ data }) => {
         setYrlar(data || [])
         setLoading(false)

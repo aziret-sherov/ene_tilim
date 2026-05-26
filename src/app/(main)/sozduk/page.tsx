@@ -28,13 +28,25 @@ function SozdukContent() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase
-      .from('sozduk')
-      .select('*')
-      .then(({ data }) => {
-        setEntries(data || [])
-        setLoading(false)
-      })
+    async function fetchAll() {
+      const PAGE = 1000
+      let page = 0
+      const all: typeof entries = []
+      while (true) {
+        const { data } = await supabase
+          .from('sozduk')
+          .select('*')
+          .range(page * PAGE, (page + 1) * PAGE - 1)
+          .order('word_kg')
+        if (!data || data.length === 0) break
+        all.push(...data)
+        if (data.length < PAGE) break
+        page++
+      }
+      setEntries(all)
+      setLoading(false)
+    }
+    fetchAll()
   }, [])
 
   const filtered = useMemo(() => {

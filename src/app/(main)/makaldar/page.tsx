@@ -26,6 +26,7 @@ export default function MakaldarPage() {
     supabase
       .from('makaldar')
       .select('*')
+      .limit(5000)
       .then(({ data }) => {
         setMakaldar(data || [])
         setLoading(false)

@@ -26,6 +26,7 @@ export default function LakapatarPage() {
     supabase
       .from('lakaptar')
       .select('*')
+      .limit(5000)
       .then(({ data }) => {
         setLakaptar(data || [])
         setLoading(false)
