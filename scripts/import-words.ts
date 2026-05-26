@@ -38,7 +38,7 @@ async function insertBatch(rows: WordEntry[]): Promise<void> {
       'Content-Type': 'application/json',
       'apikey': SERVICE_ROLE_KEY,
       'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Prefer': 'resolution=ignore-duplicates',
+      'Prefer': 'resolution=merge-duplicates',
     },
     body: JSON.stringify(rows),
   })

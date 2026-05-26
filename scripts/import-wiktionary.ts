@@ -115,7 +115,7 @@ async function insertBatch(rows: SozdukRow[]): Promise<number> {
       'Content-Type': 'application/json',
       'apikey': SERVICE_ROLE_KEY,
       'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-      'Prefer': 'resolution=ignore-duplicates,return=minimal',
+      'Prefer': 'resolution=merge-duplicates,return=minimal',
     },
     body: JSON.stringify(rows),
   })
