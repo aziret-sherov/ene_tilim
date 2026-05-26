@@ -55,6 +55,8 @@ export function Navbar() {
               width={36}
               height={36}
               className="shrink-0 dark:invert"
+              priority
+              sizes="36px"
             />
             <span
               className="text-xl font-black tracking-tight text-foreground"
