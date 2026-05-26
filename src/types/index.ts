@@ -42,9 +42,11 @@ export interface Akya {
 export interface SozdukEntry {
   id: number
   word_kg: string
-  word_ru: string
+  word_ru: string | null
+  word_en: string | null
   example_kg: string | null
   example_ru: string | null
+  example_en: string | null
   category: string | null
   created_at: string
 }
