@@ -2,6 +2,7 @@ export interface Makal {
   id: number
   text_kg: string
   text_ru: string
+  text_en: string | null
   category: string | null
   created_at: string
 }
@@ -10,6 +11,7 @@ export interface Lakap {
   id: number
   text_kg: string
   text_ru: string
+  text_en: string | null
   category: string | null
   created_at: string
 }
@@ -19,6 +21,7 @@ export interface Tabyshmak {
   question_kg: string
   answer_kg: string
   answer_ru: string
+  answer_en: string | null
   category: string | null
   created_at: string
 }
@@ -28,6 +31,7 @@ export interface Yr {
   title: string
   lyrics_kg: string
   translation_ru: string | null
+  translation_en: string | null
   created_at: string
 }
 
@@ -36,6 +40,7 @@ export interface Akya {
   title: string
   content_kg: string
   summary_ru: string | null
+  summary_en: string | null
   created_at: string
 }
 

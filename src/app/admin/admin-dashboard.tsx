@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import Image from 'next/image'
 import {
   LogOut, Plus, Trash2, Users, RefreshCw, X,
   MessageSquare, Smile, HelpCircle, Music2, BookOpen, Book,
-  Pencil, AlertTriangle, Menu, Search, ArrowUpDown,
+  Pencil, AlertTriangle, Menu, Search, ArrowUpDown, Filter,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import {
   logout, getEntries, addEntry, updateEntry, deleteEntry,
@@ -28,7 +30,8 @@ type Section = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any
   fields: FieldDef[]
-  displayFull: (r: Record<string, string>) => { primary: string; secondary?: string; badge?: string }
+  categories?: string[]
+  displayFull: (r: Record<string, string>) => { primary: string; secondary?: string; badge?: string; example?: string; exampleTranslation?: string }
 }
 
 const SECTIONS: Section[] = [
@@ -38,6 +41,7 @@ const SECTIONS: Section[] = [
     fields: [
       { name: 'text_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
       { name: 'text_ru', label: 'Текст (рус.)', type: 'textarea', required: true },
+      { name: 'text_en', label: 'Текст (англ.)', type: 'textarea' },
       { name: 'category', label: 'Категория', type: 'select', options: ['мудрость', 'дружба', 'труд', 'семья', 'природа', 'общество', 'образование'] },
     ],
     displayFull: r => ({ primary: r.text_kg, secondary: r.text_ru, badge: r.category }),
@@ -48,6 +52,7 @@ const SECTIONS: Section[] = [
     fields: [
       { name: 'text_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
       { name: 'text_ru', label: 'Текст (рус.)', type: 'textarea', required: true },
+      { name: 'text_en', label: 'Текст (англ.)', type: 'textarea' },
       { name: 'category', label: 'Категория', type: 'select', options: ['юмор', 'мудрость', 'поведение', 'щедрость', 'единство'] },
     ],
     displayFull: r => ({ primary: r.text_kg, secondary: r.text_ru, badge: r.category }),
@@ -59,6 +64,7 @@ const SECTIONS: Section[] = [
       { name: 'question_kg', label: 'Загадка (кырг.)', type: 'textarea', required: true },
       { name: 'answer_kg', label: 'Ответ (кырг.)', type: 'text', required: true },
       { name: 'answer_ru', label: 'Ответ (рус.)', type: 'text', required: true },
+      { name: 'answer_en', label: 'Ответ (англ.)', type: 'text' },
       { name: 'category', label: 'Категория', type: 'select', options: ['природа', 'предметы', 'время', 'животные', 'еда'] },
     ],
     displayFull: r => ({ primary: r.question_kg, secondary: `${r.answer_kg} · ${r.answer_ru}`, badge: r.category }),
@@ -70,6 +76,7 @@ const SECTIONS: Section[] = [
       { name: 'title', label: 'Название', type: 'text', required: true },
       { name: 'lyrics_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
       { name: 'translation_ru', label: 'Перевод (рус.)', type: 'textarea' },
+      { name: 'translation_en', label: 'Перевод (англ.)', type: 'textarea' },
     ],
     displayFull: r => ({ primary: r.title, secondary: r.lyrics_kg }),
   },
@@ -80,20 +87,30 @@ const SECTIONS: Section[] = [
       { name: 'title', label: 'Название', type: 'text', required: true },
       { name: 'content_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
       { name: 'summary_ru', label: 'Краткое описание (рус.)', type: 'textarea' },
+      { name: 'summary_en', label: 'Краткое описание (англ.)', type: 'textarea' },
     ],
     displayFull: r => ({ primary: r.title, secondary: r.summary_ru }),
   },
   {
     key: 'sozduk', label: 'Сөздүк', labelRu: 'Словарь',
     icon: Book,
+    categories: ['природа', 'семья', 'чувства', 'еда', 'время', 'место', 'действие'],
     fields: [
       { name: 'word_kg', label: 'Слово (кырг.)', type: 'text', required: true },
-      { name: 'word_ru', label: 'Слово (рус.)', type: 'text', required: true },
+      { name: 'word_ru', label: 'Слово (рус.)', type: 'text' },
+      { name: 'word_en', label: 'Слово (англ.)', type: 'text' },
       { name: 'example_kg', label: 'Пример (кырг.)', type: 'textarea' },
       { name: 'example_ru', label: 'Пример (рус.)', type: 'textarea' },
+      { name: 'example_en', label: 'Пример (англ.)', type: 'textarea' },
       { name: 'category', label: 'Категория', type: 'select', options: ['природа', 'семья', 'чувства', 'еда', 'время', 'место', 'действие'] },
     ],
-    displayFull: r => ({ primary: `${r.word_kg} — ${r.word_ru}`, secondary: r.example_kg, badge: r.category }),
+    displayFull: r => ({
+      primary: r.word_kg,
+      secondary: [r.word_ru && `РУ: ${r.word_ru}`, r.word_en && `EN: ${r.word_en}`].filter(Boolean).join(' · ') || undefined,
+      badge: r.category,
+      example: r.example_kg || undefined,
+      exampleTranslation: [r.example_ru && `РУ: ${r.example_ru}`, r.example_en && `EN: ${r.example_en}`].filter(Boolean).join(' · ') || undefined,
+    }),
   },
 ]
 
@@ -317,6 +334,9 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminQuery, setAdminQuery] = useState('')
   const [adminSort, setAdminSort] = useState<'newest' | 'oldest' | 'az' | 'za'>('newest')
+  const [adminCategory, setAdminCategory] = useState('')
+  const [adminPage, setAdminPage] = useState(0)
+  const ADMIN_PAGE_SIZE = 50
 
   // Edit modal
   const [editEntry, setEditEntry] = useState<Record<string, string> | null>(null)
@@ -352,7 +372,9 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
     setDeleteTarget(null)
     setSuccess('')
     setAdminQuery('')
-    setAdminSort('newest')
+    setAdminSort(activeTab === 'sozduk' ? 'az' : 'newest')
+    setAdminCategory('')
+    setAdminPage(0)
     if (activeTab === 'users') {
       getAdminUsers().then(d => setUsers(d as Record<string, string>[])).catch(() => {})
     } else {
@@ -364,6 +386,9 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
 
   const filteredEntries = useMemo(() => {
     let result = entries
+    if (adminCategory) {
+      result = result.filter(e => e.category === adminCategory)
+    }
     if (adminQuery) {
       const q = adminQuery.toLowerCase()
       result = result.filter(e =>
@@ -385,7 +410,12 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
         default: return 0
       }
     })
-  }, [entries, adminQuery, adminSort, section])
+  }, [entries, adminQuery, adminSort, adminCategory, section])
+
+  const totalAdminPages = Math.ceil(filteredEntries.length / ADMIN_PAGE_SIZE)
+  const paginatedEntries = filteredEntries.slice(adminPage * ADMIN_PAGE_SIZE, (adminPage + 1) * ADMIN_PAGE_SIZE)
+
+  useEffect(() => { setAdminPage(0) }, [adminQuery, adminCategory])
 
   const handleAdd = async (form: Record<string, string>) => {
     setSaving(true)
@@ -506,12 +536,15 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
           ${sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'}`}
       >
         <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-100">
-          <span
-            className="font-black text-[#18181b] text-sm"
-            style={{ fontFamily: 'var(--font-unbounded)' }}
-          >
-            Эне тилим
-          </span>
+          <div className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Эне тилим" width={28} height={28} className="shrink-0" />
+            <span
+              className="font-black text-[#18181b] text-sm"
+              style={{ fontFamily: 'var(--font-unbounded)' }}
+            >
+              Эне тилим
+            </span>
+          </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 lg:hidden"
@@ -747,6 +780,36 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                 </div>
               )}
 
+              {/* Category chips */}
+              {!loading && entries.length > 0 && section.categories && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Filter className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                  <button
+                    onClick={() => setAdminCategory('')}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                      adminCategory === ''
+                        ? 'bg-zinc-900 text-white'
+                        : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                    }`}
+                  >
+                    Все
+                  </button>
+                  {section.categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setAdminCategory(adminCategory === cat ? '' : cat)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        adminCategory === cat
+                          ? 'bg-zinc-900 text-white'
+                          : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Entries */}
               {loading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -772,47 +835,105 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                   <p className="text-sm text-zinc-400">Ничего не найдено</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filteredEntries.map(entry => {
-                    const { primary, secondary, badge } = section.displayFull(entry)
-                    return (
-                      <div
-                        key={entry.id}
-                        className="bg-white rounded-xl border border-zinc-200 p-4 flex flex-col gap-2 group hover:border-zinc-300 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-zinc-900 line-clamp-2 leading-snug">{primary}</p>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {paginatedEntries.map(entry => {
+                      const { primary, secondary, badge, example, exampleTranslation } = section.displayFull(entry)
+                      return (
+                        <div
+                          key={entry.id}
+                          className="bg-white rounded-xl border border-zinc-200 p-4 flex flex-col gap-2 group hover:border-zinc-300 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-zinc-900 line-clamp-2 leading-snug">{primary}</p>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+                              <button
+                                onClick={() => setEditEntry(entry)}
+                                className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
+                                title="Редактировать"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteTarget({ id: entry.id, label: primary })}
+                                className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
+                                title="Удалить"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-                            <button
-                              onClick={() => setEditEntry(entry)}
-                              className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors"
-                              title="Редактировать"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget({ id: entry.id, label: primary })}
-                              className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
-                              title="Удалить"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                          {secondary && (
+                            <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{secondary}</p>
+                          )}
+                          {badge && (
+                            <span className="self-start text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
+                              {badge}
+                            </span>
+                          )}
+                          {example && (
+                            <div className="mt-1 pt-2 border-t border-zinc-100">
+                              <p className="text-xs italic text-zinc-400 line-clamp-2">{example}</p>
+                              {exampleTranslation && (
+                                <p className="text-xs text-zinc-400/70 mt-0.5 line-clamp-1">{exampleTranslation}</p>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {secondary && (
-                          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{secondary}</p>
-                        )}
-                        {badge && (
-                          <span className="self-start text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-                            {badge}
-                          </span>
-                        )}
+                      )
+                    })}
+                  </div>
+
+                  {totalAdminPages > 1 && (
+                    <div className="flex items-center justify-between pt-2" style={{ fontFamily: 'var(--font-nunito)' }}>
+                      <p className="text-xs text-zinc-400">
+                        {filteredEntries.length} записей · стр. {adminPage + 1} / {totalAdminPages}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setAdminPage(p => Math.max(0, p - 1))}
+                          disabled={adminPage === 0}
+                          className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors disabled:opacity-30 text-zinc-500"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        {Array.from({ length: totalAdminPages }, (_, i) => i)
+                          .filter(i => i === 0 || i === totalAdminPages - 1 || Math.abs(i - adminPage) <= 2)
+                          .reduce<(number | '…')[]>((acc, i, idx, arr) => {
+                            if (idx > 0 && i - (arr[idx - 1] as number) > 1) acc.push('…')
+                            acc.push(i)
+                            return acc
+                          }, [])
+                          .map((item, idx) =>
+                            item === '…' ? (
+                              <span key={`ellipsis-${idx}`} className="px-1 text-zinc-400 text-xs">…</span>
+                            ) : (
+                              <button
+                                key={item}
+                                onClick={() => setAdminPage(item as number)}
+                                className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
+                                  adminPage === item
+                                    ? 'bg-zinc-900 text-white'
+                                    : 'hover:bg-zinc-100 text-zinc-500'
+                                }`}
+                              >
+                                {(item as number) + 1}
+                              </button>
+                            )
+                          )}
+                        <button
+                          onClick={() => setAdminPage(p => Math.min(totalAdminPages - 1, p + 1))}
+                          disabled={adminPage >= totalAdminPages - 1}
+                          className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors disabled:opacity-30 text-zinc-500"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : null}

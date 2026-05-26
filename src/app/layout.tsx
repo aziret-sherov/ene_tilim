@@ -31,6 +31,16 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Эне тилим', url: 'https://ene-tilim.online' }],
   creator: 'Эне тилим',
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: '/icon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'ru_RU',
@@ -39,11 +49,13 @@ export const metadata: Metadata = {
     siteName: 'Эне тилим',
     title: 'Эне тилим — Кыргызский язык и культура',
     description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь.',
+    images: [{ url: '/icon-512.png', width: 512, height: 512, alt: 'Эне тилим' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Эне тилим — Кыргызский язык и культура',
     description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь.',
+    images: ['/icon-512.png'],
   },
   robots: {
     index: true,

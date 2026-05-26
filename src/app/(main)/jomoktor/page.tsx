@@ -7,10 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
 import { BookMarked, ArrowLeft, ArrowUpDown } from 'lucide-react'
 import type { Akya } from '@/types'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
 export default function AkyaPage() {
+  const { langFilter } = useLangFilter()
   const [akyalar, setAkyalar] = useState<Akya[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -65,14 +67,17 @@ export default function AkyaPage() {
         >
           {selected.title}
         </h1>
-        {selected.summary_ru && (
-          <p
-            className="text-muted-foreground mb-8 p-4 bg-muted rounded-2xl border border-border italic"
-            style={{ fontFamily: 'var(--font-nunito)' }}
-          >
-            {selected.summary_ru}
-          </p>
-        )}
+        {(() => {
+          const summary = langFilter === 'kg-ru' ? selected.summary_ru : selected.summary_en
+          return summary ? (
+            <p
+              className="text-muted-foreground mb-8 p-4 bg-muted rounded-2xl border border-border italic"
+              style={{ fontFamily: 'var(--font-nunito)' }}
+            >
+              {summary}
+            </p>
+          ) : null
+        })()}
         <div
           className="prose prose-lg max-w-none text-foreground/85 leading-relaxed"
           style={{ fontFamily: 'var(--font-nunito)', fontSize: '1.05rem', lineHeight: '1.8' }}
@@ -87,17 +92,6 @@ export default function AkyaPage() {
 
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <BookMarked className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-            Жомоктор
-          </h1>
-        </div>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Кыргызские сказки и легенды
-        </p>
-      </div>
 
       <div className="flex gap-2 mb-6">
         <div className="flex-1">
@@ -156,14 +150,18 @@ export default function AkyaPage() {
                     >
                       {akya.title}
                     </h3>
-                    {akya.summary_ru && (
-                      <p
-                        className="text-muted-foreground text-sm line-clamp-2"
-                        style={{ fontFamily: 'var(--font-nunito)' }}
-                      >
-                        {akya.summary_ru}
-                      </p>
-                    )}
+                    {(() => {
+                      const summary = langFilter === 'kg-ru' ? akya.summary_ru : akya.summary_en
+                      return summary ? (
+                        <p className="text-muted-foreground text-sm line-clamp-2" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          {summary}
+                        </p>
+                      ) : (langFilter === 'kg-en' && (
+                        <p className="text-muted-foreground/35 italic text-xs" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          not translated
+                        </p>
+                      ))
+                    })()}
                     <p
                       className="text-muted-foreground text-xs mt-3 font-medium"
                       style={{ fontFamily: 'var(--font-nunito)' }}

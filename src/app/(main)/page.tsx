@@ -1,7 +1,8 @@
+'use client'
+
 import Link from 'next/link'
-import { Suspense } from 'react'
 import { WordOfDay } from '@/components/word-of-day'
-import { WordOfDaySkeleton } from '@/components/word-of-day-skeleton'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 import {
   MessageSquare,
   HelpCircle,
@@ -13,12 +14,48 @@ import {
 } from 'lucide-react'
 
 const sections = [
-  { href: '/makaldar',     title: 'Макалдар',    subtitle: 'Пословицы',           icon: MessageSquare },
-  { href: '/lakaptar',     title: 'Лакаптар',    subtitle: 'Образные выражения',   icon: Sparkles      },
-  { href: '/tabyshkaktar', title: 'Табышмактар', subtitle: 'Загадки',             icon: HelpCircle    },
-  { href: '/yrlar',        title: 'Ырлар',        subtitle: 'Песни',               icon: Music         },
-  { href: '/jomoktor',     title: 'Жомоктор',     subtitle: 'Сказки',              icon: BookMarked    },
-  { href: '/sozduk',       title: 'Сөздүк',       subtitle: 'Словарь',             icon: Search        },
+  {
+    href: '/makaldar',
+    title: 'Макалдар',
+    subtitleRu: 'Пословицы',
+    subtitleEn: 'Proverbs',
+    icon: MessageSquare,
+  },
+  {
+    href: '/lakaptar',
+    title: 'Лакаптар',
+    subtitleRu: 'Образные выражения',
+    subtitleEn: 'Idioms',
+    icon: Sparkles,
+  },
+  {
+    href: '/tabyshkaktar',
+    title: 'Табышмактар',
+    subtitleRu: 'Загадки',
+    subtitleEn: 'Riddles',
+    icon: HelpCircle,
+  },
+  {
+    href: '/yrlar',
+    title: 'Ырлар',
+    subtitleRu: 'Песни',
+    subtitleEn: 'Songs',
+    icon: Music,
+  },
+  {
+    href: '/jomoktor',
+    title: 'Жомоктор',
+    subtitleRu: 'Сказки',
+    subtitleEn: 'Tales',
+    icon: BookMarked,
+  },
+  {
+    href: '/sozduk',
+    title: 'Сөздүк',
+    subtitleRu: 'Словарь',
+    subtitleEn: 'Dictionary',
+    icon: Search,
+  },
 ]
 
 const rows = [
@@ -28,7 +65,10 @@ const rows = [
 ]
 
 export default function HomePage() {
-  const dateStr = new Date().toLocaleDateString('ru-RU', {
+  const { langFilter } = useLangFilter()
+  const isRu = langFilter === 'kg-ru'
+
+  const dateStr = new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -43,7 +83,7 @@ export default function HomePage() {
       <div className="lg:w-[45%] lg:max-w-[680px] shrink-0 flex flex-col gap-4">
 
         {/* Word of Day tile — dark */}
-        <div className="flex-1 bg-[#18181b] rounded-2xl p-8 lg:p-10 flex flex-col justify-between min-h-[300px] lg:min-h-0">
+        <div className="flex-1 bg-[#18181b] rounded-2xl p-8 lg:p-14 flex flex-col justify-between min-h-[420px] lg:min-h-0">
           <div className="flex items-center justify-between mb-4 lg:mb-0">
             <span
               className="text-[10px] uppercase tracking-[0.22em] font-semibold text-white/40"
@@ -58,9 +98,7 @@ export default function HomePage() {
               {dateStr}
             </span>
           </div>
-          <Suspense fallback={<WordOfDaySkeleton hero />}>
-            <WordOfDay hero />
-          </Suspense>
+          <WordOfDay hero />
         </div>
 
         {/* Search tile */}
@@ -73,7 +111,7 @@ export default function HomePage() {
             className="text-sm text-muted-foreground group-hover:text-foreground transition-colors"
             style={{ fontFamily: 'var(--font-nunito)' }}
           >
-            Сөз издөө / Поиск слова...
+            {isRu ? 'Сөз издөө / Поиск слова...' : 'Сөз издөө / Search word...'}
           </span>
         </Link>
       </div>
@@ -123,7 +161,7 @@ export default function HomePage() {
                         }`}
                         style={{ fontFamily: 'var(--font-nunito)' }}
                       >
-                        {section.subtitle}
+                        {isRu ? section.subtitleRu : section.subtitleEn}
                       </p>
                     </div>
                   </div>

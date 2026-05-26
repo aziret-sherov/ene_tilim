@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ThemeToggle } from './theme-toggle'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { useLangFilter, type LangFilter } from '@/contexts/lang-filter-context'
 
 const navLinks = [
   { href: '/makaldar',     label: 'Макалдар'    },
@@ -15,6 +17,28 @@ const navLinks = [
   { href: '/sozduk',       label: 'Сөздүк'      },
 ]
 
+function LangToggle() {
+  const { langFilter, setLangFilter } = useLangFilter()
+  return (
+    <div className="flex items-center bg-muted rounded-xl p-0.5">
+      {(['kg-ru', 'kg-en'] as LangFilter[]).map((lf) => (
+        <button
+          key={lf}
+          onClick={() => setLangFilter(lf)}
+          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+            langFilter === lf
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          style={{ fontFamily: 'var(--font-nunito)' }}
+        >
+          {lf === 'kg-ru' ? 'КГ–РУ' : 'КГ–EN'}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -24,7 +48,14 @@ export function Navbar() {
       <div className="px-5 sm:px-7 lg:px-10">
         <div className="flex items-center justify-between h-16">
 
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logo.png"
+              alt="Эне тилим"
+              width={36}
+              height={36}
+              className="shrink-0 dark:invert"
+            />
             <span
               className="text-xl font-black tracking-tight text-foreground"
               style={{ fontFamily: 'var(--font-unbounded)' }}
@@ -51,6 +82,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <LangToggle />
             <ThemeToggle />
             <button
               className="md:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors"

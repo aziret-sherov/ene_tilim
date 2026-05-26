@@ -62,12 +62,21 @@ async function requireSession() {
 export async function getEntries(table: string) {
   await requireSession()
   const supabase = createAdminClient()
-  const { data } = await supabase
-    .from(table)
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200)
-  return data ?? []
+  const PAGE = 1000
+  let page = 0
+  const all: Record<string, unknown>[] = []
+  while (true) {
+    const { data } = await supabase
+      .from(table)
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(page * PAGE, (page + 1) * PAGE - 1)
+    if (!data || data.length === 0) break
+    all.push(...data)
+    if (data.length < PAGE) break
+    page++
+  }
+  return all
 }
 
 export async function addEntry(table: string, data: Record<string, string>) {
