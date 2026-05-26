@@ -7,26 +7,34 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
-import { Search, BookOpen, Filter, ArrowUpDown } from 'lucide-react'
+import { Search, BookOpen, Filter, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 import type { SozdukEntry } from '@/types'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'az' | 'za' | 'newest' | 'oldest'
-type LangFilter = 'kg-ru' | 'kg-en'
 
 const CATEGORIES = ['Баары', 'природа', 'семья', 'чувства', 'еда', 'время', 'место', 'действие']
+const PAGE_SIZE = 60
 
-function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
+function SozdukContent() {
   const searchParams = useSearchParams()
   const initialQ = searchParams.get('q') || ''
+  const { langFilter } = useLangFilter()
 
   const [entries, setEntries] = useState<SozdukEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState(initialQ)
   const [activeCategory, setActiveCategory] = useState('Баары')
   const [sortOrder, setSortOrder] = useState<SortOrder>('az')
+  const [page, setPage] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
+    const cols = langFilter === 'kg-ru'
+      ? 'id,word_kg,word_ru,example_kg,example_ru,category,created_at'
+      : 'id,word_kg,word_en,example_kg,example_en,category,created_at'
+
     async function fetchAll() {
       const PAGE = 1000
       let page = 0
@@ -34,24 +42,25 @@ function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
       while (true) {
         const { data } = await supabase
           .from('sozduk')
-          .select('*')
+          .select(cols)
           .range(page * PAGE, (page + 1) * PAGE - 1)
           .order('word_kg')
         if (!data || data.length === 0) break
-        all.push(...data)
+        all.push(...(data as SozdukEntry[]))
         if (data.length < PAGE) break
         page++
       }
       setEntries(all)
       setLoading(false)
     }
+
+    setLoading(true)
+    setEntries([])
     fetchAll()
-  }, [])
+  }, [langFilter])
 
   const filtered = useMemo(() => {
     let result = entries
-    if (langFilter === 'kg-ru') result = result.filter((e) => e.word_ru)
-    if (langFilter === 'kg-en') result = result.filter((e) => e.word_en)
     if (activeCategory !== 'Баары') {
       result = result.filter((e) => e.category === activeCategory)
     }
@@ -64,6 +73,18 @@ function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
           (e.word_en || '').toLowerCase().includes(q) ||
           (e.example_kg || '').toLowerCase().includes(q)
       )
+
+      // Relevance rank: exact > starts-with > translation-starts-with > contains
+      const rank = (e: SozdukEntry) => {
+        const kg = e.word_kg.toLowerCase()
+        const tr = langFilter === 'kg-ru' ? (e.word_ru || '').toLowerCase() : (e.word_en || '').toLowerCase()
+        if (kg === q) return 0
+        if (kg.startsWith(q)) return 1
+        if (tr.startsWith(q)) return 2
+        if (kg.includes(q)) return 3
+        return 4
+      }
+      return [...result].sort((a, b) => rank(a) - rank(b))
     }
     return [...result].sort((a, b) => {
       switch (sortOrder) {
@@ -74,17 +95,26 @@ function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
         default: return 0
       }
     })
-  }, [query, activeCategory, sortOrder, langFilter, entries])
+  }, [query, activeCategory, sortOrder, entries, langFilter])
 
-  const translation = (entry: SozdukEntry) =>
-    langFilter === 'kg-ru' ? entry.word_ru : entry.word_en
+  // reset to page 0 whenever filters/sort change
+  useEffect(() => { setPage(0) }, [query, activeCategory, sortOrder, langFilter])
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
+  const translation = (entry: SozdukEntry): string | null =>
+    langFilter === 'kg-ru' ? (entry.word_ru ?? null) : (entry.word_en ?? null)
 
   const exampleTranslation = (entry: SozdukEntry) =>
     langFilter === 'kg-ru' ? entry.example_ru : entry.example_en
 
+  const noTranslationLabel = langFilter === 'kg-ru' ? 'котормосу жок' : 'not translated'
+
   return (
     <>
-      <div className="flex gap-2 mb-4">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md -mx-5 sm:-mx-7 lg:-mx-10 px-5 sm:px-7 lg:px-10 py-3 mb-2">
+      <div className="flex gap-2">
         <div className="flex-1">
           <SearchBar
             placeholder={langFilter === 'kg-ru' ? 'Сөз издөө / Поиск слова...' : 'Сөз издөө / Search word...'}
@@ -105,6 +135,7 @@ function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
             <option value="oldest">Старые</option>
           </select>
         </div>
+      </div>
       </div>
 
       <div className="flex items-center gap-2 mb-6 flex-wrap">
@@ -145,91 +176,113 @@ function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((entry) => (
-            <Card key={entry.id} className="glass rounded-2xl border-primary/15 card-hover">
-              <CardContent className="p-5">
-                <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-                  <span
-                    className="font-bold text-primary"
-                    style={{ fontFamily: 'var(--font-unbounded)', fontSize: '1.05rem' }}
-                  >
-                    {entry.word_kg}
-                  </span>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {translation(entry) && (
-                      <>
-                        <span className="text-muted-foreground/40">—</span>
-                        <span className="text-foreground/80 text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
-                          {translation(entry)}
-                        </span>
-                      </>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {paginated.map((entry) => {
+              const tr = translation(entry)
+              return (
+                <Card key={entry.id} className="glass rounded-2xl border-primary/15 card-hover">
+                  <CardContent className="p-5">
+                    <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
+                      <Link href={`/sozduk/${encodeURIComponent(entry.word_kg)}`} className="hover:opacity-80 transition-opacity">
+                      <span
+                        className="font-bold text-primary"
+                        style={{ fontFamily: 'var(--font-unbounded)', fontSize: '1.05rem' }}
+                      >
+                        {entry.word_kg}
+                      </span>
+                      </Link>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {tr ? (
+                          <>
+                            <span className="text-muted-foreground/40">—</span>
+                            <span className="text-foreground/80 text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
+                              {tr}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground/35 italic text-xs" style={{ fontFamily: 'var(--font-nunito)' }}>
+                            {noTranslationLabel}
+                          </span>
+                        )}
+                        {entry.category && (
+                          <Badge variant="secondary" className="rounded-lg text-xs">{entry.category}</Badge>
+                        )}
+                      </div>
+                    </div>
+                    {entry.example_kg && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-sm italic text-foreground/65" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          {entry.example_kg}
+                        </p>
+                        {exampleTranslation(entry) && (
+                          <p className="text-sm text-muted-foreground/70 mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
+                            {exampleTranslation(entry)}
+                          </p>
+                        )}
+                      </div>
                     )}
-                    {entry.category && (
-                      <Badge variant="secondary" className="rounded-lg text-xs">{entry.category}</Badge>
-                    )}
-                  </div>
-                </div>
-                {entry.example_kg && (
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <p className="text-sm italic text-foreground/65" style={{ fontFamily: 'var(--font-nunito)' }}>
-                      {entry.example_kg}
-                    </p>
-                    {exampleTranslation(entry) && (
-                      <p className="text-sm text-muted-foreground/70 mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {exampleTranslation(entry)}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
 
-      <p className="text-center text-muted-foreground/50 text-sm mt-8" style={{ fontFamily: 'var(--font-nunito)' }}>
-        {filtered.length} сөз табылды
-      </p>
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-8" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <p className="text-muted-foreground/50 text-sm">
+              {filtered.length} сөз · {page + 1} / {totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="p-2 rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i)
+                .filter(i => i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 2)
+                .reduce<(number | '…')[]>((acc, i, idx, arr) => {
+                  if (idx > 0 && i - (arr[idx - 1] as number) > 1) acc.push('…')
+                  acc.push(i)
+                  return acc
+                }, [])
+                .map((item, idx) =>
+                  item === '…' ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-muted-foreground/40 text-sm">…</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setPage(item as number)}
+                      className={`w-8 h-8 rounded-xl text-sm font-medium transition-colors ${
+                        page === item
+                          ? 'bg-primary text-primary-foreground'
+                          : 'hover:bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {(item as number) + 1}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="p-2 rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }
 
 export default function SozdukPage() {
-  const [langFilter, setLangFilter] = useState<LangFilter>('kg-ru')
-
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 mb-2">
-          <div className="flex items-center gap-3">
-            <Search className="h-6 w-6 text-muted-foreground shrink-0" />
-            <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-              Сөздүк
-            </h1>
-          </div>
-          {/* Language toggle in header */}
-          <div className="flex items-center bg-muted rounded-xl p-1 shrink-0 mt-1">
-            {(['kg-ru', 'kg-en'] as LangFilter[]).map((lf) => (
-              <button
-                key={lf}
-                onClick={() => setLangFilter(lf)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  langFilter === lf
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                style={{ fontFamily: 'var(--font-nunito)' }}
-              >
-                {lf === 'kg-ru' ? 'КГ — РУ' : 'КГ — EN'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="text-muted-foreground ml-9" style={{ fontFamily: 'var(--font-nunito)' }}>
-          {langFilter === 'kg-ru' ? 'Кыргызско-русский словарь' : 'Kyrgyz-English dictionary'}
-        </p>
-      </div>
       <Suspense
         fallback={
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -244,7 +297,7 @@ export default function SozdukPage() {
           </div>
         }
       >
-        <SozdukContent langFilter={langFilter} />
+        <SozdukContent />
       </Suspense>
     </div>
   )

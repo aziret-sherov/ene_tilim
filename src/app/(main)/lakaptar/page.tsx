@@ -7,13 +7,16 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
 import { Share2, Sparkles, Filter, ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
 import type { Lakap } from '@/types'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
 const CATEGORIES = ['Баары', 'юмор', 'мудрость', 'поведение', 'щедрость', 'единство']
 
 export default function LakapatarPage() {
+  const { langFilter } = useLangFilter()
   const [lakaptar, setLakaptar] = useState<Lakap[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -66,17 +69,6 @@ export default function LakapatarPage() {
 
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Sparkles className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-            Лакаптар
-          </h1>
-        </div>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Образные выражения и крылатые слова
-        </p>
-      </div>
 
       <div className="flex gap-2 mb-4">
         <div className="flex-1">
@@ -139,15 +131,27 @@ export default function LakapatarPage() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
+                    <Link href={`/lakaptar/${lakap.id}`} className="hover:text-primary transition-colors">
                     <p
                       className="font-semibold text-foreground mb-2 leading-relaxed"
                       style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.95rem' }}
                     >
                       {lakap.text_kg}
                     </p>
-                    <p className="text-muted-foreground leading-relaxed" style={{ fontFamily: 'var(--font-nunito)' }}>
-                      {lakap.text_ru}
-                    </p>
+                    </Link>
+                    {langFilter === 'kg-ru' ? (
+                      <p className="text-muted-foreground leading-relaxed" style={{ fontFamily: 'var(--font-nunito)' }}>
+                        {lakap.text_ru}
+                      </p>
+                    ) : lakap.text_en ? (
+                      <p className="text-muted-foreground leading-relaxed" style={{ fontFamily: 'var(--font-nunito)' }}>
+                        {lakap.text_en}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground/35 italic text-xs" style={{ fontFamily: 'var(--font-nunito)' }}>
+                        not translated
+                      </p>
+                    )}
                     {lakap.category && (
                       <Badge variant="secondary" className="mt-3 rounded-lg text-xs">{lakap.category}</Badge>
                     )}

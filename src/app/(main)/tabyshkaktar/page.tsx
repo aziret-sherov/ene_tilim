@@ -7,13 +7,16 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
 import { HelpCircle, Eye, EyeOff, Filter, ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
 import type { Tabyshmak } from '@/types'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
 const CATEGORIES = ['Баары', 'природа', 'предметы', 'время', 'животные', 'еда']
 
 export default function TabyshkaktarPage() {
+  const { langFilter } = useLangFilter()
   const [tabyshmaktar, setTabyshmaktar] = useState<Tabyshmak[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -64,17 +67,6 @@ export default function TabyshkaktarPage() {
 
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <HelpCircle className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-            Табышмактар
-          </h1>
-        </div>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Кыргызские загадки — проверь свою смекалку!
-        </p>
-      </div>
 
       <div className="flex gap-2 mb-4">
         <div className="flex-1">
@@ -138,12 +130,14 @@ export default function TabyshkaktarPage() {
               <Card key={t.id} className="glass rounded-2xl border-primary/15 card-hover">
                 <CardContent className="p-6">
                   <div className="mb-4">
+                    <Link href={`/tabyshkaktar/${t.id}`} className="hover:text-primary transition-colors">
                     <p
                       className="text-foreground font-medium leading-relaxed text-base"
                       style={{ fontFamily: 'var(--font-nunito)' }}
                     >
                       {t.question_kg}
                     </p>
+                    </Link>
                     {t.category && (
                       <Badge variant="secondary" className="mt-2 rounded-lg text-xs">{t.category}</Badge>
                     )}
@@ -168,9 +162,19 @@ export default function TabyshkaktarPage() {
                       >
                         {t.answer_kg}
                       </p>
-                      <p className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {t.answer_ru}
-                      </p>
+                      {langFilter === 'kg-ru' ? (
+                        <p className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          {t.answer_ru}
+                        </p>
+                      ) : t.answer_en ? (
+                        <p className="text-muted-foreground text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          {t.answer_en}
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground/35 italic text-xs" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          not translated
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>

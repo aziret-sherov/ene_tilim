@@ -6,11 +6,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { SearchBar } from '@/components/search-bar'
 import { Music, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
 import type { Yr } from '@/types'
+import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
 export default function YrlarPage() {
+  const { langFilter } = useLangFilter()
   const [yrlar, setYrlar] = useState<Yr[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -54,17 +57,6 @@ export default function YrlarPage() {
 
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Music className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-            Ырлар
-          </h1>
-        </div>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Кыргызские песни с текстами
-        </p>
-      </div>
 
       <div className="flex gap-2 mb-6">
         <div className="flex-1">
@@ -118,12 +110,14 @@ export default function YrlarPage() {
                         <Music className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="min-w-0">
+                        <Link href={`/yrlar/${yr.id}`} onClick={e => e.stopPropagation()} className="hover:text-primary transition-colors">
                         <h3
                           className="font-bold text-foreground truncate"
                           style={{ fontFamily: 'var(--font-unbounded)', fontSize: '0.9rem' }}
                         >
                           {yr.title}
                         </h3>
+                        </Link>
                         <p
                           className="text-xs text-muted-foreground mt-0.5 line-clamp-1"
                           style={{ fontFamily: 'var(--font-nunito)' }}
@@ -150,19 +144,24 @@ export default function YrlarPage() {
                             {yr.lyrics_kg}
                           </pre>
                         </div>
-                        {yr.translation_ru && (
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                              Перевод
-                            </p>
-                            <pre
-                              className="whitespace-pre-wrap text-muted-foreground text-sm leading-relaxed"
-                              style={{ fontFamily: 'var(--font-nunito)' }}
-                            >
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                            {langFilter === 'kg-ru' ? 'Перевод' : 'Translation'}
+                          </p>
+                          {langFilter === 'kg-ru' && yr.translation_ru ? (
+                            <pre className="whitespace-pre-wrap text-muted-foreground text-sm leading-relaxed" style={{ fontFamily: 'var(--font-nunito)' }}>
                               {yr.translation_ru}
                             </pre>
-                          </div>
-                        )}
+                          ) : langFilter === 'kg-en' && yr.translation_en ? (
+                            <pre className="whitespace-pre-wrap text-muted-foreground text-sm leading-relaxed" style={{ fontFamily: 'var(--font-nunito)' }}>
+                              {yr.translation_en}
+                            </pre>
+                          ) : (
+                            <p className="text-muted-foreground/35 italic text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
+                              {langFilter === 'kg-ru' ? 'котормосу жок' : 'not translated'}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
