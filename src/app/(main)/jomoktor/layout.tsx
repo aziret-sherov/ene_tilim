@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Жомоктор — Кыргызские сказки',
-  description: 'Кыргызские народные сказки и легенды на кыргызском языке с переводом на русский.',
-  alternates: { canonical: 'https://ene-tilim.online/jomoktor' },
+  title: 'Кыргызские сказки и легенды — Жомоктор | Эне тилим',
+  description: 'Кыргызские народные сказки, легенды и эпосы на кыргызском языке с переводом на русский. Kyrgyz folk tales and legends.',
+  alternates: { canonical: 'https://www.ene-tilim.online/jomoktor' },
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

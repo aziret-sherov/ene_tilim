@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Ырлар — Кыргызские песни',
-  description: 'Кыргызские народные и современные песни с текстами и переводом на русский язык.',
-  alternates: { canonical: 'https://ene-tilim.online/yrlar' },
+  title: 'Кыргызские песни с текстом и переводом — Ырлар | Эне тилим',
+  description: 'Тексты кыргызских народных и современных песен с переводом на русский язык. Kyrgyz songs with lyrics and translation.',
+  alternates: { canonical: 'https://www.ene-tilim.online/yrlar' },
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

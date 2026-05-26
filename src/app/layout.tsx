@@ -18,7 +18,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ene-tilim.online'),
+  metadataBase: new URL('https://www.ene-tilim.online'),
   title: {
     default: 'Эне тилим — Кыргызский язык и культура',
     template: '%s | Эне тилим',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     'макалдар', 'лакаптар', 'табышмактар', 'кыргызские загадки', 'кыргызские песни',
     'кыргызский словарь', 'сөздүк', 'кыргызская культура', 'эне тилим',
   ],
-  authors: [{ name: 'Эне тилим', url: 'https://ene-tilim.online' }],
+  authors: [{ name: 'Эне тилим', url: 'https://www.ene-tilim.online' }],
   creator: 'Эне тилим',
   icons: {
     icon: [
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ru_RU',
     alternateLocale: 'ky_KG',
-    url: 'https://ene-tilim.online',
+    url: 'https://www.ene-tilim.online',
     siteName: 'Эне тилим',
     title: 'Эне тилим — Кыргызский язык и культура',
     description: 'Изучай кыргызский язык и культуру: пословицы, загадки, песни, сказки и словарь.',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://ene-tilim.online',
+    canonical: 'https://www.ene-tilim.online',
   },
 }
 
