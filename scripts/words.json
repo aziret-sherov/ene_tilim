@@ -1,0 +1,416 @@
+[
+  {
+    "word_kg": "аалам",
+    "word_ru": "мир, вселенная",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "ааламдык",
+    "word_ru": "несметный (букв. то, что есть во всём мире)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "аамыят",
+    "word_ru": "значимость",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "аары",
+    "word_ru": "оса",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "аба",
+    "word_ru": "дядя (по мужской линии)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "баба",
+    "word_ru": "дед",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "бабка",
+    "word_ru": "бабушка (разг.)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "баа",
+    "word_ru": "возглас неодобрения, отвращения",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "вазир",
+    "word_ru": "визирь, министр",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "жаа",
+    "word_ru": "лук (оружие)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "заада",
+    "word_ru": "запуганный, пугливый, трусливый",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "заар",
+    "word_ru": "яд, отрава",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "заара",
+    "word_ru": "заарасы житти или заарасы учту он сильно испугался",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "заардуу",
+    "word_ru": "ядовитый, отравленный ядом",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "зааркан",
+    "word_ru": "буйствовать, бушевать",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "ибеп",
+    "word_ru": "подозрение, сомнение",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "кабак",
+    "word_ru": "веко",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "каада",
+    "word_ru": "обычай",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "наабай",
+    "word_ru": "пекарь, выпекающий лепёшки",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "наадан",
+    "word_ru": "невежда",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "оббо",
+    "word_ru": "межд., выражающее удивление",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "областтык",
+    "word_ru": "областной",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "обо",
+    "word_ru": "небо",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "өбөк",
+    "word_ru": "опора, поддержка",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "өбөктө",
+    "word_ru": "понуро склонять голову",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "өгө",
+    "word_ru": "пилить, стачивать (металл) напильником, подпилком",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "өгөй",
+    "word_ru": "свойственник, сводный (не кровный)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "саадак",
+    "word_ru": "колчан",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "саам",
+    "word_ru": "доение",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "сааба",
+    "word_ru": "рел. сподвижник пророка Мухаммеда",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "табак",
+    "word_ru": "блюдо (первоначально - деревянное)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "табалу",
+    "word_ru": "бить, праздно шататься, бить баклуши",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "таажы",
+    "word_ru": "корона",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "таажыдар",
+    "word_ru": "коронованный, венценосный",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убаа",
+    "word_ru": "раскаяние, сожаление",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убаажы",
+    "word_ru": "причина, повод",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убаалы",
+    "word_ru": "ясновидец, провидец",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убада",
+    "word_ru": "обещание",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убадалуу",
+    "word_ru": "обусловленный, обещанный, условленный",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убадасыз",
+    "word_ru": "не держащий своего обещания, непостоянный (о человеке)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убайсыз",
+    "word_ru": "без страха",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "убайым",
+    "word_ru": "страх, боязнь",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "үгүндү",
+    "word_ru": "мелкие крошки",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "үгүт",
+    "word_ru": "наставление, поучение",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "үгүттөө",
+    "word_ru": "наставление, поучение",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "хадж",
+    "word_ru": "хадж (паломничество в Мекку)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "хада",
+    "word_ru": "жердь",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "хал",
+    "word_ru": "южн. решение (вопроса, дела)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "халат",
+    "word_ru": "халат (заимств. через русский)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "чабак",
+    "word_ru": "всякая мелкая рыба, рыбёшка",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "чабар",
+    "word_ru": "гонец, вестник",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "чабурок",
+    "word_ru": "шашка",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "чаалы",
+    "word_ru": "изнемогать, обессилевать",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "чаалык",
+    "word_ru": "уставать, утомляться",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "шаа",
+    "word_ru": "шах",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "шаабай",
+    "word_ru": "~: шаабайы сууду он пал духом",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбак",
+    "word_ru": "кирг.-ар. (см. небак) давно, давно уже",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбаккы",
+    "word_ru": "давний, давнишний, давно минувший",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбегейсиз",
+    "word_ru": "очень, весьма, чрезмерно",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбей",
+    "word_ru": "~: эбей-себей жаа- моросить",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбелек",
+    "word_ru": "прокладка, которую кладут под шляпку гвоздя при заколачивании",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбеп",
+    "word_ru": "снадобье, лекарство",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбий",
+    "word_ru": "старуха (ср. эжий)",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эбир",
+    "word_ru": "~: эбир-жебир во множестве, кишмя кишит",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "эвдиометр",
+    "word_ru": "греч. снаряд для определенья количества кислорода в воздухе. -рические опыты.",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "юбилейлик",
+    "word_ru": "юбилейный",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "ювелирдик",
+    "word_ru": "ювелирный",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "ядролук",
+    "word_ru": "ядерный",
+    "example_kg": null,
+    "example_ru": null
+  },
+  {
+    "word_kg": "яхна",
+    "word_ru": "южн. холодный, остуженный",
+    "example_kg": null,
+    "example_ru": null
+  }
+]
