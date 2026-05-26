@@ -11,11 +11,11 @@ import { Search, BookOpen, Filter, ArrowUpDown } from 'lucide-react'
 import type { SozdukEntry } from '@/types'
 
 type SortOrder = 'az' | 'za' | 'newest' | 'oldest'
-type LangFilter = 'all' | 'kg-ru' | 'kg-en'
+type LangFilter = 'kg-ru' | 'kg-en'
 
 const CATEGORIES = ['Баары', 'природа', 'семья', 'чувства', 'еда', 'время', 'место', 'действие']
 
-function SozdukContent() {
+function SozdukContent({ langFilter }: { langFilter: LangFilter }) {
   const searchParams = useSearchParams()
   const initialQ = searchParams.get('q') || ''
 
@@ -24,7 +24,6 @@ function SozdukContent() {
   const [query, setQuery] = useState(initialQ)
   const [activeCategory, setActiveCategory] = useState('Баары')
   const [sortOrder, setSortOrder] = useState<SortOrder>('az')
-  const [langFilter, setLangFilter] = useState<LangFilter>('all')
 
   useEffect(() => {
     const supabase = createClient()
@@ -51,11 +50,11 @@ function SozdukContent() {
 
   const filtered = useMemo(() => {
     let result = entries
+    if (langFilter === 'kg-ru') result = result.filter((e) => e.word_ru)
+    if (langFilter === 'kg-en') result = result.filter((e) => e.word_en)
     if (activeCategory !== 'Баары') {
       result = result.filter((e) => e.category === activeCategory)
     }
-    if (langFilter === 'kg-ru') result = result.filter((e) => e.word_ru)
-    if (langFilter === 'kg-en') result = result.filter((e) => e.word_en)
     if (query) {
       const q = query.toLowerCase()
       result = result.filter(
@@ -77,11 +76,20 @@ function SozdukContent() {
     })
   }, [query, activeCategory, sortOrder, langFilter, entries])
 
+  const translation = (entry: SozdukEntry) =>
+    langFilter === 'kg-ru' ? entry.word_ru : entry.word_en
+
+  const exampleTranslation = (entry: SozdukEntry) =>
+    langFilter === 'kg-ru' ? entry.example_ru : entry.example_en
+
   return (
     <>
       <div className="flex gap-2 mb-4">
         <div className="flex-1">
-          <SearchBar placeholder="Сөз издөө / Поиск / Search..." onSearch={setQuery} />
+          <SearchBar
+            placeholder={langFilter === 'kg-ru' ? 'Сөз издөө / Поиск слова...' : 'Сөз издөө / Search word...'}
+            onSearch={setQuery}
+          />
         </div>
         <div className="flex items-center gap-1.5 shrink-0 px-3 rounded-xl border border-border bg-background text-sm text-muted-foreground cursor-pointer">
           <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
@@ -99,25 +107,8 @@ function SozdukContent() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-        {(['all', 'kg-ru', 'kg-en'] as LangFilter[]).map((lf) => (
-          <button
-            key={lf}
-            onClick={() => setLangFilter(lf)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-              langFilter === lf
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-            }`}
-            style={{ fontFamily: 'var(--font-nunito)' }}
-          >
-            {lf === 'all' ? 'Баары' : lf === 'kg-ru' ? 'КГ → РУ' : 'КГ → EN'}
-          </button>
-        ))}
-      </div>
-
       <div className="flex items-center gap-2 mb-6 flex-wrap">
+        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -139,7 +130,8 @@ function SozdukContent() {
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="glass rounded-2xl border-primary/15">
               <CardContent className="p-5">
-                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
               </CardContent>
             </Card>
           ))}
@@ -148,55 +140,44 @@ function SozdukContent() {
         <div className="text-center py-16">
           <BookOpen className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
           <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>Сөз табылган жок</p>
-          <p className="text-muted-foreground/60 text-sm mt-1">Слово не найдено / Word not found</p>
+          <p className="text-muted-foreground/60 text-sm mt-1">
+            {langFilter === 'kg-ru' ? 'Слово не найдено' : 'Word not found'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((entry) => (
             <Card key={entry.id} className="glass rounded-2xl border-primary/15 card-hover">
               <CardContent className="p-5">
-                <div className="mb-2">
+                <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
                   <span
                     className="font-bold text-primary"
                     style={{ fontFamily: 'var(--font-unbounded)', fontSize: '1.05rem' }}
                   >
                     {entry.word_kg}
                   </span>
-                  {entry.category && (
-                    <Badge variant="secondary" className="rounded-lg text-xs ml-2">{entry.category}</Badge>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  {entry.word_ru && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted-foreground/50 w-6 shrink-0">РУ</span>
-                      <span className="text-foreground/80 text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {entry.word_ru}
-                      </span>
-                    </div>
-                  )}
-                  {entry.word_en && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted-foreground/50 w-6 shrink-0">EN</span>
-                      <span className="text-foreground/80 text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {entry.word_en}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {translation(entry) && (
+                      <>
+                        <span className="text-muted-foreground/40">—</span>
+                        <span className="text-foreground/80 text-sm" style={{ fontFamily: 'var(--font-nunito)' }}>
+                          {translation(entry)}
+                        </span>
+                      </>
+                    )}
+                    {entry.category && (
+                      <Badge variant="secondary" className="rounded-lg text-xs">{entry.category}</Badge>
+                    )}
+                  </div>
                 </div>
                 {entry.example_kg && (
                   <div className="mt-3 pt-3 border-t border-border">
                     <p className="text-sm italic text-foreground/65" style={{ fontFamily: 'var(--font-nunito)' }}>
                       {entry.example_kg}
                     </p>
-                    {entry.example_ru && (
+                    {exampleTranslation(entry) && (
                       <p className="text-sm text-muted-foreground/70 mt-1" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {entry.example_ru}
-                      </p>
-                    )}
-                    {entry.example_en && (
-                      <p className="text-sm text-muted-foreground/60 mt-1 italic" style={{ fontFamily: 'var(--font-nunito)' }}>
-                        {entry.example_en}
+                        {exampleTranslation(entry)}
                       </p>
                     )}
                   </div>
@@ -215,17 +196,38 @@ function SozdukContent() {
 }
 
 export default function SozdukPage() {
+  const [langFilter, setLangFilter] = useState<LangFilter>('kg-ru')
+
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Search className="h-6 w-6 text-muted-foreground" />
-          <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
-            Сөздүк
-          </h1>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex items-center gap-3">
+            <Search className="h-6 w-6 text-muted-foreground shrink-0" />
+            <h1 className="text-4xl font-bold text-foreground" style={{ fontFamily: 'var(--font-unbounded)' }}>
+              Сөздүк
+            </h1>
+          </div>
+          {/* Language toggle in header */}
+          <div className="flex items-center bg-muted rounded-xl p-1 shrink-0 mt-1">
+            {(['kg-ru', 'kg-en'] as LangFilter[]).map((lf) => (
+              <button
+                key={lf}
+                onClick={() => setLangFilter(lf)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  langFilter === lf
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                style={{ fontFamily: 'var(--font-nunito)' }}
+              >
+                {lf === 'kg-ru' ? 'КГ — РУ' : 'КГ — EN'}
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Кыргызско-русско-английский словарь
+        <p className="text-muted-foreground ml-9" style={{ fontFamily: 'var(--font-nunito)' }}>
+          {langFilter === 'kg-ru' ? 'Кыргызско-русский словарь' : 'Kyrgyz-English dictionary'}
         </p>
       </div>
       <Suspense
@@ -234,14 +236,15 @@ export default function SozdukPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="glass rounded-2xl border-primary/15">
                 <CardContent className="p-5">
-                  <Skeleton className="h-8 w-48" />
+                  <Skeleton className="h-8 w-48 mb-2" />
+                  <Skeleton className="h-4 w-32" />
                 </CardContent>
               </Card>
             ))}
           </div>
         }
       >
-        <SozdukContent />
+        <SozdukContent langFilter={langFilter} />
       </Suspense>
     </div>
   )
