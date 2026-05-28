@@ -107,10 +107,10 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleRefresh}
-                className="text-white/25 hover:text-white/60 transition-colors"
+                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all"
                 aria-label="Random word"
               >
-                <RefreshCw className={`h-3.5 w-3.5 transition-transform ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
               <span
                 className="text-[10px] text-white/25 hidden sm:block"
