@@ -31,7 +31,7 @@ export function WordOfDay({ hero }: { hero?: boolean } = {}) {
         .from('word_of_day')
         .select('*, sozduk(word_kg,word_ru,word_en,example_kg,example_ru,example_en,category)')
         .eq('date', today)
-        .single()
+        .maybeSingle()
 
       if (wod?.sozduk) {
         setWord(wod.sozduk as WordData)

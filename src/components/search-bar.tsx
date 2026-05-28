@@ -3,24 +3,26 @@
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface SearchBarProps {
   placeholder?: string
   onSearch?: (query: string) => void
   globalSearch?: boolean
+  debounceMs?: number
 }
 
-export function SearchBar({ placeholder = 'Издөө...', onSearch, globalSearch }: SearchBarProps) {
+export function SearchBar({ placeholder = 'Издөө...', onSearch, globalSearch, debounceMs = 300 }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const router = useRouter()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => { return () => clearTimeout(debounceRef.current) }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (globalSearch && query.trim()) {
       router.push(`/sozduk?q=${encodeURIComponent(query.trim())}`)
-    } else if (onSearch) {
-      onSearch(query)
     }
   }
 
@@ -31,8 +33,12 @@ export function SearchBar({ placeholder = 'Издөө...', onSearch, globalSearc
         type="text"
         value={query}
         onChange={(e) => {
-          setQuery(e.target.value)
-          if (onSearch) onSearch(e.target.value)
+          const val = e.target.value
+          setQuery(val)
+          if (onSearch) {
+            clearTimeout(debounceRef.current)
+            debounceRef.current = setTimeout(() => onSearch(val), debounceMs)
+          }
         }}
         placeholder={placeholder}
         className="pl-10 rounded-xl border-border bg-input/50 focus:bg-input h-11"

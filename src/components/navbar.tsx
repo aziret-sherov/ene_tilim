@@ -32,7 +32,7 @@ function LangToggle() {
           }`}
           style={{ fontFamily: 'var(--font-nunito)' }}
         >
-          {lf === 'kg-ru' ? 'КГ–РУ' : 'КГ–EN'}
+          {lf === 'kg-ru' ? 'KG–RU' : 'KG–EN'}
         </button>
       ))}
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import {
   LogOut, Plus, Trash2, Users, RefreshCw, X,
@@ -9,7 +9,7 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import {
-  logout, getEntries, addEntry, updateEntry, deleteEntry,
+  logout, getEntriesPaged, addEntry, updateEntry, deleteEntry,
   getAdminUsers, createAdminUser, deleteAdminUser,
 } from './actions'
 import { useRouter } from 'next/navigation'
@@ -328,11 +328,13 @@ function Avatar({ name }: { name: string }) {
 export function AdminDashboard({ session }: { session: SessionPayload }) {
   const [activeTab, setActiveTab] = useState('makaldar')
   const [entries, setEntries] = useState<Record<string, string>[]>([])
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminQuery, setAdminQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [adminSort, setAdminSort] = useState<'newest' | 'oldest' | 'az' | 'za'>('newest')
   const [adminCategory, setAdminCategory] = useState('')
   const [adminPage, setAdminPage] = useState(0)
@@ -359,63 +361,64 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
     setTimeout(() => setSuccess(''), 3000)
   }
 
-  const loadEntries = useCallback(async () => {
-    setLoading(true)
-    const data = await getEntries(activeTab)
-    setEntries(data as Record<string, string>[])
-    setLoading(false)
-  }, [activeTab])
+  // Debounce search query — UI updates instantly, server call fires after 300 ms idle
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedQuery(adminQuery); setAdminPage(0) }, 300)
+    return () => clearTimeout(t)
+  }, [adminQuery])
 
+  const loadEntries = useCallback(async () => {
+    if (activeTab === 'users') return
+    const sec = SECTIONS.find(s => s.key === activeTab)
+    if (!sec) return
+    setLoading(true)
+    const searchFields = sec.fields.filter(f => f.type !== 'select' && f.name !== 'category').map(f => f.name)
+    const { data, count } = await getEntriesPaged(activeTab, {
+      page: adminPage, pageSize: ADMIN_PAGE_SIZE, query: debouncedQuery,
+      sort: adminSort, category: adminCategory, searchFields, sortField: sec.fields[0].name,
+    })
+    setEntries(data)
+    setTotalCount(count)
+    setLoading(false)
+  }, [activeTab, adminPage, debouncedQuery, adminSort, adminCategory])
+
+  // Reset UI + filters when switching tabs
   useEffect(() => {
     setShowAddForm(false)
     setEditEntry(null)
     setDeleteTarget(null)
     setSuccess('')
     setAdminQuery('')
+    setDebouncedQuery('')
     setAdminSort(activeTab === 'sozduk' ? 'az' : 'newest')
     setAdminCategory('')
     setAdminPage(0)
     if (activeTab === 'users') {
       getAdminUsers().then(d => setUsers(d as Record<string, string>[])).catch(() => {})
-    } else {
-      loadEntries()
     }
-  }, [activeTab, loadEntries])
+  }, [activeTab])
+
+  // Fetch whenever debounced query / sort / category / page / tab changes
+  useEffect(() => {
+    if (activeTab === 'users') return
+    const sec = SECTIONS.find(s => s.key === activeTab)
+    if (!sec) return
+    let cancelled = false
+    setLoading(true)
+    const searchFields = sec.fields.filter(f => f.type !== 'select' && f.name !== 'category').map(f => f.name)
+    getEntriesPaged(activeTab, {
+      page: adminPage, pageSize: ADMIN_PAGE_SIZE, query: debouncedQuery,
+      sort: adminSort, category: adminCategory, searchFields, sortField: sec.fields[0].name,
+    }).then(({ data, count }) => {
+      if (!cancelled) { setEntries(data); setTotalCount(count); setLoading(false) }
+    })
+    return () => { cancelled = true }
+  }, [activeTab, adminPage, debouncedQuery, adminSort, adminCategory])
 
   const section = SECTIONS.find(s => s.key === activeTab)
 
-  const filteredEntries = useMemo(() => {
-    let result = entries
-    if (adminCategory) {
-      result = result.filter(e => e.category === adminCategory)
-    }
-    if (adminQuery) {
-      const q = adminQuery.toLowerCase()
-      result = result.filter(e =>
-        Object.values(e).some(v => String(v).toLowerCase().includes(q))
-      )
-    }
-    return [...result].sort((a, b) => {
-      switch (adminSort) {
-        case 'newest': return Number(b.id) - Number(a.id)
-        case 'oldest': return Number(a.id) - Number(b.id)
-        case 'az': {
-          const key = section?.fields[0]?.name ?? 'id'
-          return String(a[key] ?? '').localeCompare(String(b[key] ?? ''))
-        }
-        case 'za': {
-          const key = section?.fields[0]?.name ?? 'id'
-          return String(b[key] ?? '').localeCompare(String(a[key] ?? ''))
-        }
-        default: return 0
-      }
-    })
-  }, [entries, adminQuery, adminSort, adminCategory, section])
-
-  const totalAdminPages = Math.ceil(filteredEntries.length / ADMIN_PAGE_SIZE)
-  const paginatedEntries = filteredEntries.slice(adminPage * ADMIN_PAGE_SIZE, (adminPage + 1) * ADMIN_PAGE_SIZE)
-
-  useEffect(() => { setAdminPage(0) }, [adminQuery, adminCategory])
+  const totalAdminPages = Math.ceil(totalCount / ADMIN_PAGE_SIZE)
+  const paginatedEntries = entries
 
   const handleAdd = async (form: Record<string, string>) => {
     setSaving(true)
@@ -618,7 +621,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
               <p className="text-xs text-zinc-400 mt-0.5 truncate">
                 {activeTab === 'users'
                   ? `${users.length} пользователей`
-                  : `${section?.labelRu} · ${filteredEntries.length}${adminQuery ? ` из ${entries.length}` : ''} записей`
+                  : `${section?.labelRu} · ${totalCount} записей`
                 }
               </p>
             </div>
@@ -745,7 +748,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
           ) : section ? (
             <div className="w-full space-y-4">
               {/* Search + sort toolbar */}
-              {!loading && entries.length > 0 && (
+              {(
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center gap-2 px-3 rounded-xl border border-zinc-200 bg-white">
                     <Search className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
@@ -758,7 +761,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                       style={{ fontFamily: 'var(--font-nunito)' }}
                     />
                     {adminQuery && (
-                      <button onClick={() => setAdminQuery('')} className="text-zinc-300 hover:text-zinc-500">
+                      <button onClick={() => { setAdminQuery(''); setDebouncedQuery('') }} className="text-zinc-300 hover:text-zinc-500">
                         <X className="h-3.5 w-3.5" />
                       </button>
                     )}
@@ -767,7 +770,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                     <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
                     <select
                       value={adminSort}
-                      onChange={e => setAdminSort(e.target.value as typeof adminSort)}
+                      onChange={e => { setAdminSort(e.target.value as typeof adminSort); setAdminPage(0) }}
                       className="bg-transparent outline-none cursor-pointer py-2.5"
                       style={{ fontFamily: 'var(--font-nunito)' }}
                     >
@@ -781,11 +784,11 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
               )}
 
               {/* Category chips */}
-              {!loading && entries.length > 0 && section.categories && (
+              {section.categories && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <Filter className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                   <button
-                    onClick={() => setAdminCategory('')}
+                    onClick={() => { setAdminCategory(''); setAdminPage(0) }}
                     className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                       adminCategory === ''
                         ? 'bg-zinc-900 text-white'
@@ -797,7 +800,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                   {section.categories.map(cat => (
                     <button
                       key={cat}
-                      onClick={() => setAdminCategory(adminCategory === cat ? '' : cat)}
+                      onClick={() => { setAdminCategory(adminCategory === cat ? '' : cat); setAdminPage(0) }}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                         adminCategory === cat
                           ? 'bg-zinc-900 text-white'
@@ -830,7 +833,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                     + Добавить первую запись
                   </button>
                 </div>
-              ) : filteredEntries.length === 0 ? (
+              ) : entries.length === 0 ? (
                 <div className="bg-white rounded-2xl border border-zinc-200 py-12 text-center">
                   <p className="text-sm text-zinc-400">Ничего не найдено</p>
                 </div>
@@ -889,7 +892,7 @@ export function AdminDashboard({ session }: { session: SessionPayload }) {
                   {totalAdminPages > 1 && (
                     <div className="flex items-center justify-between pt-2" style={{ fontFamily: 'var(--font-nunito)' }}>
                       <p className="text-xs text-zinc-400">
-                        {filteredEntries.length} записей · стр. {adminPage + 1} / {totalAdminPages}
+                        {totalCount} записей · стр. {adminPage + 1} / {totalAdminPages}
                       </p>
                       <div className="flex items-center gap-1">
                         <button

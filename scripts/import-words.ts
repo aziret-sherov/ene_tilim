@@ -24,15 +24,18 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 
 interface WordEntry {
   word_kg: string
-  word_ru: string
+  word_ru: string | null
+  word_en: string | null
+  category: string | null
   example_kg: string | null
   example_ru: string | null
+  example_en: string | null
 }
 
 const BATCH_SIZE = 100
 
 async function insertBatch(rows: WordEntry[]): Promise<void> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/sozduk`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/sozduk?on_conflict=word_kg`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

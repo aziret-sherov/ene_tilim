@@ -79,6 +79,44 @@ export async function getEntries(table: string) {
   return all
 }
 
+export async function getEntriesPaged(
+  table: string,
+  params: {
+    page: number
+    pageSize: number
+    query: string
+    sort: 'newest' | 'oldest' | 'az' | 'za'
+    category: string
+    searchFields: string[]
+    sortField: string
+  }
+) {
+  await requireSession()
+  const supabase = createAdminClient()
+  const { page, pageSize, query, sort, category, searchFields, sortField } = params
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q: any = supabase.from(table).select('*', { count: 'exact' })
+
+  if (category) q = q.eq('category', category)
+
+  if (query && searchFields.length > 0) {
+    q = q.or(searchFields.map((f: string) => `${f}.ilike.%${query}%`).join(','))
+  }
+
+  switch (sort) {
+    case 'newest': q = q.order('created_at', { ascending: false }); break
+    case 'oldest': q = q.order('created_at', { ascending: true });  break
+    case 'az':     q = q.order(sortField,    { ascending: true });  break
+    case 'za':     q = q.order(sortField,    { ascending: false }); break
+  }
+
+  q = q.range(page * pageSize, (page + 1) * pageSize - 1)
+
+  const { data, count } = await q
+  return { data: (data ?? []) as Record<string, string>[], count: count ?? 0 }
+}
+
 export async function addEntry(table: string, data: Record<string, string>) {
   await requireSession()
   const supabase = createAdminClient()
