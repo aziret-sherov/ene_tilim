@@ -84,8 +84,8 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <LangToggle />
             <ThemeToggle />
+            <LangToggle />
             <button
               className="md:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
