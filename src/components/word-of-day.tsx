@@ -78,12 +78,20 @@ export function WordOfDay({ hero, refreshCount = 0 }: { hero?: boolean; refreshC
   const toSozduk = 'Сөздүккө өтүү'
 
   if (hero) {
+    const len = word.word_kg.length
+    const heroFontSize =
+      len <= 4  ? 'clamp(4rem, 11vw, 11rem)' :
+      len <= 6  ? 'clamp(3rem, 8vw, 8rem)'   :
+      len <= 8  ? 'clamp(2.5rem, 6vw, 6rem)' :
+      len <= 11 ? 'clamp(2rem, 4.5vw, 4.5rem)' :
+                  'clamp(1.5rem, 3.5vw, 3.5rem)'
+
     return (
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-8">
           <h3
-            className="font-bold text-white leading-[0.9]"
-            style={{ fontFamily: 'var(--font-unbounded)', fontSize: 'clamp(4rem, 11vw, 11rem)' }}
+            className="font-bold text-white leading-[0.95]"
+            style={{ fontFamily: 'var(--font-unbounded)', fontSize: heroFontSize }}
           >
             {word.word_kg}
           </h3>
