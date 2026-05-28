@@ -18,7 +18,9 @@ interface WordData {
   category: string | null
 }
 
-export function WordOfDay({ hero }: { hero?: boolean } = {}) {
+const WORD_COLS = 'word_kg,word_ru,word_en,example_kg,example_ru,example_en,category'
+
+export function WordOfDay({ hero, refreshCount = 0 }: { hero?: boolean; refreshCount?: number } = {}) {
   const { langFilter } = useLangFilter()
   const [word, setWord] = useState<WordData | null>(null)
 
@@ -29,7 +31,7 @@ export function WordOfDay({ hero }: { hero?: boolean } = {}) {
 
       const { data: wod } = await supabase
         .from('word_of_day')
-        .select('*, sozduk(word_kg,word_ru,word_en,example_kg,example_ru,example_en,category)')
+        .select(`*, sozduk(${WORD_COLS})`)
         .eq('date', today)
         .maybeSingle()
 
@@ -38,16 +40,35 @@ export function WordOfDay({ hero }: { hero?: boolean } = {}) {
         return
       }
 
-      const { data: random } = await supabase
+      const { data: first } = await supabase
         .from('sozduk')
-        .select('word_kg,word_ru,word_en,example_kg,example_ru,example_en,category')
+        .select(WORD_COLS)
         .limit(1)
         .single()
 
-      if (random) setWord(random as WordData)
+      if (first) setWord(first as WordData)
     }
     load()
   }, [])
+
+  useEffect(() => {
+    if (refreshCount === 0) return
+    async function loadRandom() {
+      const supabase = createClient()
+      const { count } = await supabase
+        .from('sozduk')
+        .select('id', { count: 'exact', head: true })
+      if (!count) return
+      const offset = Math.floor(Math.random() * count)
+      const { data } = await supabase
+        .from('sozduk')
+        .select(WORD_COLS)
+        .range(offset, offset)
+        .single()
+      if (data) setWord(data as WordData)
+    }
+    loadRandom()
+  }, [refreshCount])
 
   if (!word) return null
 

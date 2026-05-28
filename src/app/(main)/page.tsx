@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { WordOfDay } from '@/components/word-of-day'
 import { HomeFaq } from './home-faq'
 import { useLangFilter } from '@/contexts/lang-filter-context'
@@ -12,6 +13,7 @@ import {
   Search,
   Sparkles,
   ArrowUpRight,
+  RefreshCw,
 } from 'lucide-react'
 
 const sections = [
@@ -68,6 +70,14 @@ const rows = [
 export default function HomePage() {
   const { langFilter } = useLangFilter()
   const isRu = langFilter === 'kg-ru'
+  const [refreshCount, setRefreshCount] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const handleRefresh = () => {
+    setRefreshing(true)
+    setRefreshCount(c => c + 1)
+    setTimeout(() => setRefreshing(false), 600)
+  }
 
   const dateStr = new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', {
     day: 'numeric',
@@ -94,14 +104,23 @@ export default function HomePage() {
             >
               Күндүн сөзү
             </span>
-            <span
-              className="text-[10px] text-white/25 hidden sm:block"
-              style={{ fontFamily: 'var(--font-nunito)' }}
-            >
-              {dateStr}
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRefresh}
+                className="text-white/25 hover:text-white/60 transition-colors"
+                aria-label="Random word"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 transition-transform ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <span
+                className="text-[10px] text-white/25 hidden sm:block"
+                style={{ fontFamily: 'var(--font-nunito)' }}
+              >
+                {dateStr}
+              </span>
+            </div>
           </div>
-          <WordOfDay hero />
+          <WordOfDay hero refreshCount={refreshCount} />
         </div>
 
         {/* Search tile */}

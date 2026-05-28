@@ -89,7 +89,7 @@ function SozdukContent() {
         const ql = query.toLowerCase()
         const rank = (e: SozdukEntry) => {
           const kg = e.word_kg.toLowerCase()
-          const tr = (langFilter === 'kg-ru' ? e.word_ru : e.word_en || '').toLowerCase()
+          const tr = (langFilter === 'kg-ru' ? (e.word_ru ?? '') : (e.word_en ?? '')).toLowerCase()
           if (kg === ql)           return 0
           if (kg.startsWith(ql))   return 1
           if (tr.startsWith(ql))   return 2
