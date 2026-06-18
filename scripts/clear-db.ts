@@ -21,7 +21,7 @@ if (!URL || !KEY) {
   process.exit(1)
 }
 
-const TABLES = ['sozduk', 'akya', 'makaldar', 'lakaptar', 'tabyshmaktar', 'yrlar']
+const TABLES = ['word_of_day', 'sozduk', 'akya', 'jomoktor', 'makaldar', 'lakaptar', 'tabyshmaktar', 'yrlar']
 
 async function clearTable(table: string) {
   const res = await fetch(`${URL}/rest/v1/${table}?id=gte.0`, {

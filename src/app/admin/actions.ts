@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { signSession, verifySession, type SessionPayload } from '@/lib/session'
@@ -36,7 +37,7 @@ export async function login(email: string, password: string) {
     sameSite: 'lax',
   })
 
-  return { success: true }
+  redirect('/admin')
 }
 
 export async function logout() {

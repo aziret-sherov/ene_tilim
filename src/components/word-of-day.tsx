@@ -40,13 +40,21 @@ export function WordOfDay({ hero, refreshCount = 0 }: { hero?: boolean; refreshC
         return
       }
 
-      const { data: first } = await supabase
+      const { count } = await supabase
+        .from('sozduk')
+        .select('id', { count: 'exact', head: true })
+      if (!count) return
+
+      const epoch = Math.floor(new Date(today).getTime() / 86400000)
+      const offset = epoch % count
+
+      const { data: daily } = await supabase
         .from('sozduk')
         .select(WORD_COLS)
-        .limit(1)
+        .range(offset, offset)
         .single()
 
-      if (first) setWord(first as WordData)
+      if (daily) setWord(daily as WordData)
     }
     load()
   }, [])

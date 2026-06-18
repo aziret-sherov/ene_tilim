@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { login } from './actions'
-import { useRouter } from 'next/navigation'
 import { BookOpen } from 'lucide-react'
 
 export function LoginForm() {
@@ -10,18 +9,15 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     const result = await login(email, password)
-    if (result.error) {
+    if (result?.error) {
       setError(result.error)
       setLoading(false)
-    } else {
-      router.refresh()
     }
   }
 
