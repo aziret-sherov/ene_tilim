@@ -1,10 +1,8 @@
-'use client'
-
 import Link from 'next/link'
-import { useState } from 'react'
-import { WordOfDay } from '@/components/word-of-day'
 import { HomeFaq } from './home-faq'
-import { useLangFilter } from '@/contexts/lang-filter-context'
+import { HomeWordOfDayTile } from './home-word-of-day-tile'
+import { createClient } from '@/lib/supabase/server'
+import type { WordData } from '@/components/word-of-day'
 import {
   MessageSquare,
   HelpCircle,
@@ -13,50 +11,58 @@ import {
   Search,
   Sparkles,
   ArrowUpRight,
-  RefreshCw,
 } from 'lucide-react'
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Эне тилим',
+  url: 'https://ene-tilim.online',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://ene-tilim.online/sozduk?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}
 
 const sections = [
   {
     href: '/makaldar',
     title: 'Макалдар',
-    subtitleRu: 'Пословицы',
-    subtitleEn: 'Proverbs',
+    subtitle: 'Пословицы / Proverbs',
     icon: MessageSquare,
   },
   {
     href: '/lakaptar',
     title: 'Лакаптар',
-    subtitleRu: 'Образные выражения',
-    subtitleEn: 'Idioms',
+    subtitle: 'Поговорки / Idioms',
     icon: Sparkles,
   },
   {
     href: '/tabyshkaktar',
     title: 'Табышмактар',
-    subtitleRu: 'Загадки',
-    subtitleEn: 'Riddles',
+    subtitle: 'Загадки / Riddles',
     icon: HelpCircle,
   },
   {
     href: '/yrlar',
     title: 'Ырлар',
-    subtitleRu: 'Песни',
-    subtitleEn: 'Songs',
+    subtitle: 'Песни / Songs',
     icon: Music,
   },
   {
     href: '/jomoktor',
     title: 'Жомоктор',
-    subtitleRu: 'Сказки',
-    subtitleEn: 'Tales',
+    subtitle: 'Сказки / Tales',
     icon: BookMarked,
   },
   {
     href: '/sozduk',
     title: 'Сөздүк',
-    subtitleRu: 'Словарь',
-    subtitleEn: 'Dictionary',
+    subtitle: 'Словарь / Dictionary',
     icon: Search,
   },
 ]
@@ -67,133 +73,123 @@ const rows = [
   [sections[4], sections[5]],
 ]
 
-export default function HomePage() {
-  const { langFilter } = useLangFilter()
-  const isRu = langFilter === 'kg-ru'
-  const [refreshCount, setRefreshCount] = useState(0)
-  const [refreshing, setRefreshing] = useState(false)
+const WORD_COLS = 'word_kg,word_ru,word_en,example_kg,example_ru,example_en,category'
 
-  const handleRefresh = () => {
-    setRefreshing(true)
-    setRefreshCount(c => c + 1)
-    setTimeout(() => setRefreshing(false), 600)
-  }
+async function fetchWordOfDay(): Promise<WordData | undefined> {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
 
-  const dateStr = new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  const { data: wod } = await supabase
+    .from('word_of_day')
+    .select(`*, sozduk(${WORD_COLS})`)
+    .eq('date', today)
+    .maybeSingle()
+
+  if (wod?.sozduk) return wod.sozduk as WordData
+
+  const { count } = await supabase
+    .from('sozduk')
+    .select('id', { count: 'exact', head: true })
+  if (!count) return undefined
+
+  const epoch = Math.floor(new Date(today).getTime() / 86400000)
+  const { data: daily } = await supabase
+    .from('sozduk')
+    .select(WORD_COLS)
+    .range(epoch % count, epoch % count)
+    .single()
+
+  return daily ?? undefined
+}
+
+export default async function HomePage() {
+  const initialWord = await fetchWordOfDay()
 
   return (
     <>
-    <HomeFaq />
-    <div
-      className="flex flex-col lg:flex-row gap-4 p-5 sm:p-7 lg:p-10"
-      style={{ minHeight: 'calc(100vh - 64px)' }}
-    >
-      {/* ── LEFT COLUMN ──────────────────────────────────── */}
-      <div className="lg:w-[45%] lg:max-w-[680px] shrink-0 flex flex-col gap-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <HomeFaq />
+      <div
+        className="flex flex-col lg:flex-row gap-4 p-5 sm:p-7 lg:p-10"
+        style={{ minHeight: 'calc(100vh - 64px)' }}
+      >
+        {/* LEFT COLUMN */}
+        <div className="lg:w-[45%] lg:max-w-[680px] shrink-0 flex flex-col gap-4">
+          <HomeWordOfDayTile initialWord={initialWord} />
 
-        {/* Word of Day tile — dark */}
-        <div className="flex-1 bg-[#18181b] rounded-2xl p-8 lg:p-14 flex flex-col justify-between min-h-[420px] lg:min-h-0">
-          <div className="flex items-center justify-between mb-4 lg:mb-0">
+          <Link
+            href="/sozduk"
+            className="h-14 bg-muted rounded-2xl px-5 flex items-center gap-3 shrink-0 hover:bg-muted/70 transition-colors group"
+          >
+            <Search className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
             <span
-              className="text-[10px] uppercase tracking-[0.22em] font-semibold text-white/40"
+              className="text-sm text-muted-foreground group-hover:text-foreground transition-colors"
               style={{ fontFamily: 'var(--font-nunito)' }}
             >
-              Күндүн сөзү
+              Сөз издөө / Поиск слова / Search word...
             </span>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleRefresh}
-                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all"
-                aria-label="Random word"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              </button>
-              <span
-                className="text-[10px] text-white/25 hidden sm:block"
-                style={{ fontFamily: 'var(--font-nunito)' }}
-              >
-                {dateStr}
-              </span>
-            </div>
-          </div>
-          <WordOfDay hero refreshCount={refreshCount} />
+          </Link>
         </div>
 
-        {/* Search tile */}
-        <Link
-          href="/sozduk"
-          className="h-14 bg-muted rounded-2xl px-5 flex items-center gap-3 shrink-0 hover:bg-muted/70 transition-colors group"
-        >
-          <Search className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
-          <span
-            className="text-sm text-muted-foreground group-hover:text-foreground transition-colors"
-            style={{ fontFamily: 'var(--font-nunito)' }}
-          >
-            {isRu ? 'Сөз издөө / Поиск слова...' : 'Сөз издөө / Search word...'}
-          </span>
-        </Link>
-      </div>
-
-      {/* ── RIGHT COLUMN — section grid ──────────────────── */}
-      <div className="flex-1 flex flex-col gap-4">
-        {rows.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex gap-4 flex-1 min-h-[110px]">
-            {row.map((section, colIdx) => {
-              const Icon = section.icon
-              const isInverse = rowIdx === 2 && colIdx === 1
-              return (
-                <Link key={section.href} href={section.href} className="flex-1">
-                  <div
-                    className={`h-full rounded-2xl p-5 lg:p-6 flex flex-col justify-between cursor-pointer group transition-all hover:-translate-y-0.5 hover:shadow-sm ${
-                      isInverse
-                        ? 'bg-[#18181b]'
-                        : 'bg-muted border border-transparent hover:border-foreground/10'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <Icon
-                        className={`h-5 w-5 transition-colors ${
-                          isInverse
-                            ? 'text-white'
-                            : 'text-muted-foreground group-hover:text-foreground'
-                        }`}
-                      />
-                      <ArrowUpRight
-                        className={`h-3.5 w-3.5 opacity-0 group-hover:opacity-30 transition-opacity ${
-                          isInverse ? 'text-white' : 'text-foreground'
-                        }`}
-                      />
+        {/* RIGHT COLUMN */}
+        <div className="flex-1 flex flex-col gap-4">
+          {rows.map((row, rowIdx) => (
+            <div key={rowIdx} className="flex gap-4 flex-1 min-h-[110px]">
+              {row.map((section, colIdx) => {
+                const Icon = section.icon
+                const isInverse = rowIdx === 2 && colIdx === 1
+                return (
+                  <Link key={section.href} href={section.href} className="flex-1">
+                    <div
+                      className={`h-full rounded-2xl p-5 lg:p-6 flex flex-col justify-between cursor-pointer group transition-all hover:-translate-y-0.5 hover:shadow-sm ${
+                        isInverse
+                          ? 'bg-[#18181b]'
+                          : 'bg-muted border border-transparent hover:border-foreground/10'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <Icon
+                          className={`h-5 w-5 transition-colors ${
+                            isInverse
+                              ? 'text-white'
+                              : 'text-muted-foreground group-hover:text-foreground'
+                          }`}
+                        />
+                        <ArrowUpRight
+                          className={`h-3.5 w-3.5 opacity-0 group-hover:opacity-30 transition-opacity ${
+                            isInverse ? 'text-white' : 'text-foreground'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <h3
+                          className={`font-bold text-sm mb-0.5 ${
+                            isInverse ? 'text-white' : 'text-foreground'
+                          }`}
+                          style={{ fontFamily: 'var(--font-unbounded)' }}
+                        >
+                          {section.title}
+                        </h3>
+                        <p
+                          className={`text-xs ${
+                            isInverse ? 'text-white/50' : 'text-muted-foreground'
+                          }`}
+                          style={{ fontFamily: 'var(--font-nunito)' }}
+                        >
+                          {section.subtitle}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3
-                        className={`font-bold text-sm mb-0.5 ${
-                          isInverse ? 'text-white' : 'text-foreground'
-                        }`}
-                        style={{ fontFamily: 'var(--font-unbounded)' }}
-                      >
-                        {section.title}
-                      </h3>
-                      <p
-                        className={`text-xs ${
-                          isInverse ? 'text-white/50' : 'text-muted-foreground'
-                        }`}
-                        style={{ fontFamily: 'var(--font-nunito)' }}
-                      >
-                        {isRu ? section.subtitleRu : section.subtitleEn}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        ))}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
     </>
   )
 }

@@ -45,9 +45,20 @@ export default async function WordPage({ params }: Props) {
     inDefinedTermSet: { '@type': 'DefinedTermSet', name: 'Кыргызский словарь', url: 'https://ene-tilim.online/sozduk' },
   }
 
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Эне тилим', item: 'https://ene-tilim.online' },
+      { '@type': 'ListItem', position: 2, name: 'Сөздүк', item: 'https://ene-tilim.online/sozduk' },
+      { '@type': 'ListItem', position: 3, name: entry.word_kg },
+    ],
+  }
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="px-5 sm:px-7 lg:px-10 py-8 max-w-2xl mx-auto">
         <Link
           href="/sozduk"

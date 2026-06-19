@@ -42,6 +42,15 @@ export function YrlarClient({ initialData }: { initialData: Yr[] }) {
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
 
+      <div className="mb-6 pb-6 border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground mb-1.5" style={{ fontFamily: 'var(--font-unbounded)' }}>
+          Ырлар
+        </h1>
+        <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+          Кыргызские народные песни с текстами и переводом на русский и английский язык · Kyrgyz folk songs with Russian and English translations
+        </p>
+      </div>
+
       <div className="flex gap-2 mb-6">
         <div className="flex-1">
           <SearchBar placeholder="Ыр издөө..." onSearch={setQuery} />

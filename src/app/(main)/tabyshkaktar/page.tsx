@@ -13,6 +13,16 @@ export const metadata: Metadata = {
   },
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Табышмактар — Кыргызские загадки',
+  description: 'Коллекция кыргызских загадок (табышмактар) с ответами и переводом на русский и английский языки.',
+  url: 'https://ene-tilim.online/tabyshkaktar',
+  inLanguage: 'ky',
+  isPartOf: { '@type': 'WebSite', name: 'Эне тилим', url: 'https://ene-tilim.online' },
+}
+
 export default async function TabyshkaktarPage() {
   const supabase = await createClient()
   const { data } = await supabase
@@ -21,5 +31,10 @@ export default async function TabyshkaktarPage() {
     .order('created_at', { ascending: false })
     .limit(5000)
 
-  return <TabyshkaktarClient initialData={data || []} />
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <TabyshkaktarClient initialData={data || []} />
+    </>
+  )
 }

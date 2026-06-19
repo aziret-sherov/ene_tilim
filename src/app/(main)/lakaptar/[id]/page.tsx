@@ -42,9 +42,20 @@ export default async function LakapPage({ params }: Props) {
     isPartOf: { '@type': 'WebSite', name: 'Эне тилим', url: 'https://ene-tilim.online' },
   }
 
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Эне тилим', item: 'https://ene-tilim.online' },
+      { '@type': 'ListItem', position: 2, name: 'Лакаптар', item: 'https://ene-tilim.online/lakaptar' },
+      { '@type': 'ListItem', position: 3, name: lakap.text_kg },
+    ],
+  }
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <div className="px-5 sm:px-7 lg:px-10 py-8 max-w-2xl mx-auto">
         <Link
           href="/lakaptar"

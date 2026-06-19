@@ -303,9 +303,30 @@ function SozdukContent() {
   )
 }
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Сөздүк — Кыргызский словарь',
+  description: 'Кыргызско-русский и кыргызско-английский словарь с примерами употребления слов.',
+  url: 'https://ene-tilim.online/sozduk',
+  inLanguage: 'ky',
+  isPartOf: { '@type': 'WebSite', name: 'Эне тилим', url: 'https://ene-tilim.online' },
+}
+
 export default function SozdukPage() {
   return (
     <div className="px-5 sm:px-7 lg:px-10 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      <div className="mb-6 pb-6 border-b border-border">
+        <h1 className="text-2xl font-bold text-foreground mb-1.5" style={{ fontFamily: 'var(--font-unbounded)' }}>
+          Сөздүк
+        </h1>
+        <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
+          Кыргызско-русский и кыргызско-английский словарь с примерами употребления · Kyrgyz-Russian and Kyrgyz-English dictionary with usage examples
+        </p>
+      </div>
+
       <Suspense
         fallback={
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

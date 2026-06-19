@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
-interface WordData {
+export interface WordData {
   word_kg: string
   word_ru: string | null
   word_en: string | null
@@ -20,11 +20,12 @@ interface WordData {
 
 const WORD_COLS = 'word_kg,word_ru,word_en,example_kg,example_ru,example_en,category'
 
-export function WordOfDay({ hero, refreshCount = 0 }: { hero?: boolean; refreshCount?: number } = {}) {
+export function WordOfDay({ hero, refreshCount = 0, initialWord }: { hero?: boolean; refreshCount?: number; initialWord?: WordData } = {}) {
   const { langFilter } = useLangFilter()
-  const [word, setWord] = useState<WordData | null>(null)
+  const [word, setWord] = useState<WordData | null>(initialWord ?? null)
 
   useEffect(() => {
+    if (initialWord) return
     async function load() {
       const supabase = createClient()
       const today = new Date().toISOString().split('T')[0]
@@ -57,7 +58,7 @@ export function WordOfDay({ hero, refreshCount = 0 }: { hero?: boolean; refreshC
       if (daily) setWord(daily as WordData)
     }
     load()
-  }, [])
+  }, [initialWord])
 
   useEffect(() => {
     if (refreshCount === 0) return
