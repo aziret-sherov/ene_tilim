@@ -4,12 +4,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.ene-tilim.online' }],
-        destination: 'https://ene-tilim.online/:path*',
-        permanent: true,
-      },
-      {
         source: '/akya',
         destination: '/jomoktor',
         permanent: true,
