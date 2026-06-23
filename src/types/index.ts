@@ -7,14 +7,6 @@ export interface Makal {
   created_at: string
 }
 
-export interface Lakap {
-  id: number
-  text_kg: string
-  text_ru: string
-  text_en: string | null
-  category: string | null
-  created_at: string
-}
 
 export interface Tabyshmak {
   id: number

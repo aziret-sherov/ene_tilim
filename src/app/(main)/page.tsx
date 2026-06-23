@@ -9,7 +9,6 @@ import {
   Music,
   BookMarked,
   Search,
-  Sparkles,
   ArrowUpRight,
 } from 'lucide-react'
 
@@ -31,15 +30,9 @@ const websiteJsonLd = {
 const sections = [
   {
     href: '/makaldar',
-    title: 'Макалдар',
-    subtitle: 'Пословицы / Proverbs',
+    title: 'Макалдар жана Лакаптар',
+    subtitle: 'Пословицы и поговорки / Proverbs & Sayings',
     icon: MessageSquare,
-  },
-  {
-    href: '/lakaptar',
-    title: 'Лакаптар',
-    subtitle: 'Поговорки / Idioms',
-    icon: Sparkles,
   },
   {
     href: '/tabyshkaktar',
@@ -70,7 +63,7 @@ const sections = [
 const rows = [
   [sections[0], sections[1]],
   [sections[2], sections[3]],
-  [sections[4], sections[5]],
+  [sections[4]],
 ]
 
 const WORD_COLS = 'word_kg,word_ru,word_en,example_kg,example_ru,example_en,category'
@@ -140,7 +133,7 @@ export default async function HomePage() {
             <div key={rowIdx} className="flex gap-4 flex-1 min-h-[110px]">
               {row.map((section, colIdx) => {
                 const Icon = section.icon
-                const isInverse = rowIdx === 2 && colIdx === 1
+                const isInverse = rowIdx === 2 && colIdx === 0
                 return (
                   <Link key={section.href} href={section.href} className="flex-1">
                     <div

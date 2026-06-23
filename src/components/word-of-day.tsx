@@ -99,13 +99,13 @@ export function WordOfDay({ hero, refreshCount = 0, initialWord }: { hero?: bool
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-8">
           <h3
-            className="font-bold text-white leading-[0.95]"
+            className="font-bold text-white leading-[0.95] capitalize"
             style={{ fontFamily: 'var(--font-unbounded)', fontSize: heroFontSize }}
           >
             {word.word_kg}
           </h3>
           {translation && (
-            <p className="text-3xl text-white/70" style={{ fontFamily: 'var(--font-nunito)' }}>
+            <p className="text-3xl text-white/70 capitalize" style={{ fontFamily: 'var(--font-nunito)' }}>
               {translation}
             </p>
           )}

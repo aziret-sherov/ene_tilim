@@ -3,11 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { MakaldarClient } from './makaldar-client'
 
 export const metadata: Metadata = {
-  title: 'Макалдар — Кыргызские пословицы',
-  description: 'Коллекция кыргызских пословиц и поговорок (макалдар) с переводом на русский и английский языки.',
+  title: 'Макалдар жана Лакаптар — Кыргызские пословицы и поговорки',
+  description: 'Коллекция кыргызских пословиц и поговорок (макалдар, лакаптар) с переводом на русский и английский языки.',
   alternates: { canonical: 'https://ene-tilim.online/makaldar' },
   openGraph: {
-    title: 'Макалдар — Кыргызские пословицы',
+    title: 'Макалдар жана Лакаптар — Кыргызские пословицы и поговорки',
     description: 'Коллекция кыргызских пословиц и поговорок с переводом.',
     url: 'https://ene-tilim.online/makaldar',
   },
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  name: 'Макалдар — Кыргызские пословицы',
-  description: 'Коллекция кыргызских пословиц и поговорок (макалдар) с переводом на русский и английский языки.',
+  name: 'Макалдар жана Лакаптар — Кыргызские пословицы и поговорки',
+  description: 'Коллекция кыргызских пословиц и поговорок (макалдар, лакаптар) с переводом на русский и английский языки.',
   url: 'https://ene-tilim.online/makaldar',
   inLanguage: 'ky',
   isPartOf: { '@type': 'WebSite', name: 'Эне тилим', url: 'https://ene-tilim.online' },

@@ -9,8 +9,7 @@ import { useState } from 'react'
 import { useLangFilter, type LangFilter } from '@/contexts/lang-filter-context'
 
 const navLinks = [
-  { href: '/makaldar',     label: 'Макалдар'    },
-  { href: '/lakaptar',     label: 'Лакаптар'    },
+  { href: '/makaldar',     label: 'Макал-лакаптар'      },
   { href: '/tabyshkaktar', label: 'Табышмактар' },
   { href: '/yrlar',        label: 'Ырлар'        },
   { href: '/jomoktor',     label: 'Жомоктор'    },

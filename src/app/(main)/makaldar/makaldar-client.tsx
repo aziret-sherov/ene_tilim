@@ -11,7 +11,7 @@ import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
-const CATEGORIES = ['Баары', 'мудрость', 'дружба', 'труд', 'семья', 'природа', 'общество', 'образование']
+const CATEGORIES = ['Баары', 'мудрость', 'дружба', 'труд', 'семья', 'природа', 'общество', 'образование', 'юмор', 'поведение', 'щедрость', 'единство']
 
 export function MakaldarClient({ initialData }: { initialData: Makal[] }) {
   const { langFilter } = useLangFilter()
@@ -56,10 +56,10 @@ export function MakaldarClient({ initialData }: { initialData: Makal[] }) {
 
       <div className="mb-6 pb-6 border-b border-border">
         <h1 className="text-2xl font-bold text-foreground mb-1.5" style={{ fontFamily: 'var(--font-unbounded)' }}>
-          Макалдар
+          Макалдар жана Лакаптар
         </h1>
         <p className="text-sm text-muted-foreground" style={{ fontFamily: 'var(--font-nunito)' }}>
-          Кыргызские пословицы и поговорки с переводом на русский и английский язык · Kyrgyz proverbs with Russian and English translations
+          Кыргызские пословицы и поговорки с переводом на русский и английский язык · Kyrgyz proverbs and sayings with Russian and English translations
         </p>
       </div>
 

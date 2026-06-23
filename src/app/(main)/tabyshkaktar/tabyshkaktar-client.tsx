@@ -4,27 +4,21 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SearchBar } from '@/components/search-bar'
-import { HelpCircle, Eye, EyeOff, Filter, ArrowUpDown } from 'lucide-react'
+import { HelpCircle, Eye, EyeOff, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
 import type { Tabyshmak } from '@/types'
 import { useLangFilter } from '@/contexts/lang-filter-context'
 
 type SortOrder = 'newest' | 'oldest' | 'az' | 'za'
 
-const CATEGORIES = ['Баары', 'природа', 'предметы', 'время', 'животные', 'еда']
-
 export function TabyshkaktarClient({ initialData }: { initialData: Tabyshmak[] }) {
   const { langFilter } = useLangFilter()
   const [query, setQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('Баары')
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
   const [revealed, setRevealed] = useState<Set<number>>(new Set())
 
   const filtered = useMemo(() => {
     let result = initialData
-    if (activeCategory !== 'Баары') {
-      result = result.filter((t) => t.category === activeCategory)
-    }
     if (query) {
       const q = query.toLowerCase()
       result = result.filter((t) => t.question_kg.toLowerCase().includes(q))
@@ -38,7 +32,7 @@ export function TabyshkaktarClient({ initialData }: { initialData: Tabyshmak[] }
         default: return 0
       }
     })
-  }, [query, activeCategory, sortOrder, initialData])
+  }, [query, sortOrder, initialData])
 
   const toggleReveal = (id: number) => {
     setRevealed((prev) => {
@@ -61,7 +55,7 @@ export function TabyshkaktarClient({ initialData }: { initialData: Tabyshmak[] }
         </p>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-6">
         <div className="flex-1">
           <SearchBar placeholder="Табышмак издөө..." onSearch={setQuery} />
         </div>
@@ -81,24 +75,6 @@ export function TabyshkaktarClient({ initialData }: { initialData: Tabyshmak[] }
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-6 flex-wrap">
-        <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-              activeCategory === cat
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
-            }`}
-            style={{ fontFamily: 'var(--font-nunito)' }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <HelpCircle className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
@@ -115,7 +91,7 @@ export function TabyshkaktarClient({ initialData }: { initialData: Tabyshmak[] }
                     <Link href={`/tabyshkaktar/${t.id}`} className="hover:text-primary transition-colors">
                       <p
                         className="text-foreground font-medium leading-relaxed text-base"
-                        style={{ fontFamily: 'var(--font-nunito)' }}
+                        style={{ fontFamily: 'var(--font-nunito)', whiteSpace: 'pre-line' }}
                       >
                         {t.question_kg}
                       </p>

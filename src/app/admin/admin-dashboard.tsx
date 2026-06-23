@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import {
   LogOut, Plus, Trash2, Users, RefreshCw, X,
-  MessageSquare, Smile, HelpCircle, Music2, BookOpen, Book,
+  MessageSquare, HelpCircle, Music2, BookOpen, Book,
   Pencil, AlertTriangle, Menu, Search, ArrowUpDown, Filter,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
@@ -42,18 +42,7 @@ const SECTIONS: Section[] = [
       { name: 'text_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
       { name: 'text_ru', label: 'Текст (рус.)', type: 'textarea', required: true },
       { name: 'text_en', label: 'Текст (англ.)', type: 'textarea' },
-      { name: 'category', label: 'Категория', type: 'select', options: ['мудрость', 'дружба', 'труд', 'семья', 'природа', 'общество', 'образование'] },
-    ],
-    displayFull: r => ({ primary: r.text_kg, secondary: r.text_ru, badge: r.category }),
-  },
-  {
-    key: 'lakaptar', label: 'Лакаптар', labelRu: 'Поговорки',
-    icon: Smile,
-    fields: [
-      { name: 'text_kg', label: 'Текст (кырг.)', type: 'textarea', required: true },
-      { name: 'text_ru', label: 'Текст (рус.)', type: 'textarea', required: true },
-      { name: 'text_en', label: 'Текст (англ.)', type: 'textarea' },
-      { name: 'category', label: 'Категория', type: 'select', options: ['юмор', 'мудрость', 'поведение', 'щедрость', 'единство'] },
+      { name: 'category', label: 'Категория', type: 'select', options: ['мудрость', 'дружба', 'труд', 'семья', 'природа', 'общество', 'образование', 'юмор', 'поведение', 'щедрость', 'единство'] },
     ],
     displayFull: r => ({ primary: r.text_kg, secondary: r.text_ru, badge: r.category }),
   },
